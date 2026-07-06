@@ -1,0 +1,34 @@
+# PHP
+/vendor/
+
+# Node
+/node_modules/
+
+# Nette
+/temp/*
+!/temp/.gitignore
+/log/*
+!/log/.gitignore
+
+# Lokální SQLite
+/var/*.db
+/var/*.db-*
+/var/*.sqlite
+
+# Build output (Tailwind)
+/www/css/app.css
+
+# Secrets / lokální config
+/config/config.local.neon
+/config/local/
+.env
+
+# Docker
+docker-compose.override.yml
+
+# Editor / OS
+/.idea/
+.DS_Store
+
+# Testy
+/.phpunit.cache/
