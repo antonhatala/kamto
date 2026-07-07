@@ -69,21 +69,23 @@ Stavy odvozené: `paid_date`!=NULL → *zaplaceno*; NULL a `due_date`<dnes → *
 
 ## Tým agentů & proces
 Projekt staví **virtuální tým** (`.claude/agents/`): `product`, `backend-dev`, `frontend-dev`,
-`devops`, `e2e`, `qa`, `master`. Hlavní session = **orchestrátor / tech-lead** (sekvencuje,
-předává kontext, commituje po sign-offu).
+`devops`, `e2e`, `security`, `code-reviewer`, `qa`, `master`. Hlavní session = **orchestrátor /
+tech-lead** (sekvencuje, předává kontext, commituje po sign-offu).
 
 **Rotace na každou fázi/feature:** `product` (akceptační kritéria) → `backend-dev` → `frontend-dev`
-→ `devops` → `e2e` (Playwright v Dockeru — prokliká flow reálným prohlížečem) → `qa` (testy +
-`/verify`) → `master` (sign-off) → **commit**.
+→ `devops` → `e2e` (Playwright v Dockeru — prokliká flow reálným prohlížečem) → **kontroly
+paralelně:** `security` (bezpečnost BE/FE) ∥ `code-reviewer` (efektivita/minimalismus/konzistence)
+∥ `qa` (testy + `/verify`) → opravy dle nálezů (příslušný dev) → `master` (sign-off) → **commit**.
 
-- **Kontrolní role (`product`, `qa`, `master`) jsou read-only** — nesmí editovat kód. Role `e2e`
-  píše jen do `tests/e2e/` (Playwright testy + harness).
+- **Kontrolní role (`product`, `security`, `code-reviewer`, `qa`, `master`) jsou read-only** —
+  nesmí editovat kód. Role `e2e` píše jen do `tests/e2e/` (Playwright testy + harness).
 - **Škáluj obřad podle změny:** plná rotace na fázi; drobnost (typo/copy) jen BE/FE + rychlý master check.
-- **Model tiering:** dev role + `e2e` sonnet, kontrolní (`qa`, `master`) opus/high effort.
+- **Model tiering:** dev role + `e2e` sonnet, kontrolní (`security`, `code-reviewer`, `qa`,
+  `master`) opus/high effort.
 - **1 commit = 1 schválený increment** (po `master` ✓). **BEZ co-author traileru.** Commit dělá
   jen orchestrátor po `master` sign-offu.
-- Akcelerátor: stejných 7 rolí lze spustit i přes Workflow v jednom běhu
-  (`product → [backend, frontend, devops] → e2e → qa → master`).
+- Akcelerátor: stejné role lze spustit i přes Workflow v jednom běhu
+  (`product → [backend, frontend, devops] → e2e → [security, code-reviewer, qa] → master`).
 
 ## Lokální vývoj
 Na hostu není potřeba **žádný** nástroj (žádné PHP, Composer, Node/npm) — všechno běží přes
