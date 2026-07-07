@@ -47,6 +47,21 @@ tests/      nette/tester
 - Design tokeny (barvy/spacing/radius) udržuje `frontend-dev` v Tailwind konfiguraci / `src/css/app.css`
   a dokumentuje je zde.
 
+### Design tokeny (`src/css/app.css`, Tailwind v4 `@theme`)
+- **Neutrální základ:** Tailwind vestavěná škála `stone` (beze změny) — pozadí `stone-50`, text
+  `stone-900`, tlumený text `stone-500`, okraje `stone-200`/`stone-300`.
+- **Akcent — „copper/terracotta":** vlastní škála `accent-{50,100,200,500,600,700}`.
+  `#fbf0e6 · #f6dfc9 · #eac29c · #c1622e · #a6501f · #7f3d18`. `accent-600`/`accent-700` mají
+  ověřený kontrast ≥4.5:1 na bílém textu (tlačítka, odkazy); `accent-500` a světlejší jen na
+  pozadí/okraje/ringy (ne bílý text na nich — kontrast pod AA).
+- **Chyby:** vestavěná Tailwind `red-50`/`red-700` (flash i chyby formuláře).
+- **Radius:** vestavěná škála (`rounded-lg/xl/2xl`) na inputy/tlačítka/menší prvky + vlastní
+  token `--radius-card: 1.25rem` → utilita `rounded-card` pro hlavní kartu (login).
+- **Spacing:** vestavěná Tailwind v4 škála (`--spacing: 0.25rem` krok), beze změny.
+- **Font:** vestavěný `font-sans` (systémový UI stack) — žádné webfonty (offline-friendly, bez
+  závislosti na síti; důležité i pro pozdější PWA/offline).
+- **Focus stavy:** `focus:ring-2 focus:ring-accent-200/300` + `focus:border-accent-500`.
+
 ## Datový model (shrnutí, detail v docs/PLAN.md)
 `category`, `service` (opakující se šablona), `payment` (platba za konkrétní období), `_migration`.
 Stavy odvozené: `paid_date`!=NULL → *zaplaceno*; NULL a `due_date`<dnes → *po splatnosti*; jinak
@@ -54,27 +69,36 @@ Stavy odvozené: `paid_date`!=NULL → *zaplaceno*; NULL a `due_date`<dnes → *
 
 ## Tým agentů & proces
 Projekt staví **virtuální tým** (`.claude/agents/`): `product`, `backend-dev`, `frontend-dev`,
-`devops`, `qa`, `master`. Hlavní session = **orchestrátor / tech-lead** (sekvencuje, předává
-kontext, commituje po sign-offu).
+`devops`, `e2e`, `qa`, `master`. Hlavní session = **orchestrátor / tech-lead** (sekvencuje,
+předává kontext, commituje po sign-offu).
 
 **Rotace na každou fázi/feature:** `product` (akceptační kritéria) → `backend-dev` → `frontend-dev`
-→ `devops` → `qa` (testy + `/verify`) → `master` (sign-off) → **commit**.
+→ `devops` → `e2e` (Playwright v Dockeru — prokliká flow reálným prohlížečem) → `qa` (testy +
+`/verify`) → `master` (sign-off) → **commit**.
 
-- **Kontrolní role (`product`, `qa`, `master`) jsou read-only** — nesmí editovat kód.
+- **Kontrolní role (`product`, `qa`, `master`) jsou read-only** — nesmí editovat kód. Role `e2e`
+  píše jen do `tests/e2e/` (Playwright testy + harness).
 - **Škáluj obřad podle změny:** plná rotace na fázi; drobnost (typo/copy) jen BE/FE + rychlý master check.
-- **Model tiering:** dev role sonnet, kontrolní (`qa`, `master`) opus/high effort.
+- **Model tiering:** dev role + `e2e` sonnet, kontrolní (`qa`, `master`) opus/high effort.
 - **1 commit = 1 schválený increment** (po `master` ✓). **BEZ co-author traileru.** Commit dělá
   jen orchestrátor po `master` sign-offu.
-- Akcelerátor: stejných 6 rolí lze spustit i přes Workflow v jednom běhu
-  (`product → [backend, frontend, devops] → qa → master`).
+- Akcelerátor: stejných 7 rolí lze spustit i přes Workflow v jednom běhu
+  (`product → [backend, frontend, devops] → e2e → qa → master`).
 
 ## Lokální vývoj
+Na hostu není potřeba **žádný** nástroj (žádné PHP, Composer, Node/npm) — všechno běží přes
+Docker / `docker compose`. Jediná závislost je Docker samotný.
 ```bash
-docker compose up            # app: http://localhost:8080 · Adminer: http://localhost:8081
-npm install && npm run css   # build Tailwind CSS (watch: npm run css:watch)
-php bin/migrate.php           # aplikuje migrace
-composer test                # PHPStan + nette/tester
+docker compose up -d --build          # app: http://localhost:8080 · Adminer: http://localhost:8081
+docker compose run --rm composer install     # PHP závislosti (poprvé / po změně composer.json)
+docker compose run --rm node npm install     # JS závislosti (poprvé / po změně package.json)
+docker compose run --rm node npm run css     # build Tailwind CSS (watch: `... npm run css:watch`)
+docker compose run --rm php php bin/migrate.php   # aplikuje migrace (od Fáze 1)
+docker compose run --rm composer test        # PHPStan + nette/tester
+docker compose down                   # zastavit a uklidit
 ```
+`composer`/`node` jsou one-shot tooling služby (profil `tools`, mimo `docker compose up`) —
+`docker compose run --rm <služba> <příkaz>` je spustí, provede příkaz a kontejner smaže.
 
 ## Fáze (viz docs/PLAN.md)
 0 kostra+login · 1 DB+migrace+schéma · 2 CRUD služeb · 3 platby · 4 přehledy/heatmapa · 5 PWA+UX · 6 deploy Bunny.

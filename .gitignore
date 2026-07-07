@@ -32,3 +32,8 @@ docker-compose.override.yml
 
 # Testy
 /.phpunit.cache/
+
+# E2E (Playwright, tests/e2e/) — own package.json, kept separate from the root Tailwind tooling.
+/tests/e2e/node_modules/
+/tests/e2e/playwright-report/
+/tests/e2e/test-results/

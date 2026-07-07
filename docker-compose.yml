@@ -1,0 +1,61 @@
+services:
+  php:
+    build: .
+    volumes:
+      - .:/var/www/html
+    environment:
+      # Debug/Tracy mode is enabled unless APP_ENV=production (see app/Bootstrap.php).
+      # Override for a production-like run: APP_ENV=production docker compose up -d
+      APP_ENV: ${APP_ENV:-development}
+      # Optional — locally the login password hash comes from the gitignored
+      # config/config.local.neon instead. On Bunny this env var is what's actually used.
+      APP_PASSWORD_HASH: ${APP_PASSWORD_HASH:-}
+
+  nginx:
+    image: nginx:alpine
+    depends_on:
+      - php
+    ports:
+      - "8080:80"
+    volumes:
+      - .:/var/www/html:ro
+      - ./docker/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+
+  adminer:
+    image: adminer
+    ports:
+      - "8081:8080"
+
+  # One-shot tooling containers — nothing is required on the host besides Docker.
+  #   docker compose run --rm composer install
+  #   docker compose run --rm composer require ...
+  #   docker compose run --rm node npm install
+  #   docker compose run --rm node npm run css
+  composer:
+    image: composer:2
+    profiles: ["tools"]
+    volumes:
+      - .:/app
+
+  node:
+    image: node:24-alpine
+    profiles: ["tools"]
+    working_dir: /app
+    volumes:
+      - .:/app
+
+  # E2E (Playwright, real chromium) — pinned to the same version as @playwright/test in
+  # tests/e2e/package.json so the pre-installed browsers in the image match (no re-download).
+  #   docker compose run --rm e2e   # installs deps on first run, then runs the whole suite
+  e2e:
+    image: mcr.microsoft.com/playwright:v1.61.0-noble
+    profiles: ["tools"]
+    working_dir: /app/tests/e2e
+    volumes:
+      - .:/app
+    environment:
+      # nginx's internal port (see docker/nginx.conf `listen 80`) — not the host-mapped 8080.
+      BASE_URL: http://nginx:80
+    depends_on:
+      - nginx
+    command: sh -c "[ -d node_modules ] || npm ci; npx playwright test"

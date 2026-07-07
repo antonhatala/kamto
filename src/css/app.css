@@ -1,0 +1,33 @@
+/*
+ * Kamto — Tailwind v4 entry point.
+ * Build: `npm run css` (minified) / `npm run css:watch` (watch mode), both run against
+ * `www/css/app.css`. See package.json + CLAUDE.md ("Design") for the docker-run invocation.
+ */
+
+@import "tailwindcss";
+
+/* Make sure Tailwind scans Latte templates for utility classes — automatic content
+   detection should already reach them, but we pin it down explicitly to be safe. */
+@source "../../app";
+
+@theme {
+	/*
+	 * Accent — "copper/terracotta" scale, the single brand accent color (buttons, links,
+	 * focus rings, flash/info backgrounds). Neutral base stays on Tailwind's built-in
+	 * `stone` scale (bg/text/borders) — no custom gray tokens needed.
+	 *
+	 * Contrast checked against white (#fff) — accent-600/700 both clear WCAG AA (4.5:1)
+	 * for text/buttons; accent-500 and lighter are for borders, rings, and tinted
+	 * backgrounds only (never white text on them).
+	 */
+	--color-accent-50: #fbf0e6;
+	--color-accent-100: #f6dfc9;
+	--color-accent-200: #eac29c;
+	--color-accent-500: #c1622e;
+	--color-accent-600: #a6501f;
+	--color-accent-700: #7f3d18;
+
+	/* Bespoke radius for the primary "card" surfaces (login card etc.), on top of
+	   Tailwind's default rounded-lg/xl/2xl scale used everywhere else. */
+	--radius-card: 1.25rem;
+}

@@ -1,0 +1,13 @@
+{
+	"name": "kamto-frontend",
+	"private": true,
+	"description": "Tailwind v4 build pipeline for Kamto (src/css/app.css -> www/css/app.css)",
+	"scripts": {
+		"css": "tailwindcss -i ./src/css/app.css -o ./www/css/app.css --minify",
+		"css:watch": "tailwindcss -i ./src/css/app.css -o ./www/css/app.css --watch"
+	},
+	"devDependencies": {
+		"@tailwindcss/cli": "^4.1.0",
+		"tailwindcss": "^4.1.0"
+	}
+}

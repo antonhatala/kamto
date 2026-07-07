@@ -1,0 +1,16 @@
+parameters:
+	# Bcrypt/argon hash of the login password. Locally overridden in config.local.neon,
+	# on production supplied via the APP_PASSWORD_HASH environment variable.
+	appPasswordHash: %env.APP_PASSWORD_HASH%
+
+application:
+	mapping: App\Presenters\*Presenter
+
+http:
+	headers:
+		# Don't advertise the framework in responses.
+		X-Powered-By: null
+
+services:
+	router: App\Router\RouterFactory::createRouter
+	authenticator: App\Security\SinglePasswordAuthenticator(%appPasswordHash%)

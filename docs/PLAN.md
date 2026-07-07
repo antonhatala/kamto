@@ -21,11 +21,13 @@ přes tenkou DB bránu s libSQL → appka zůstává přenositelná na jakýkoli
 souborem beze změny logiky (pojistka).
 
 ## Multi-agent tým & proces (rotace)
-Tým 6 rolí jako Claude Code subagenti v `.claude/agents/*.md`. Hlavní session = orchestrátor.
+Tým 7 rolí jako Claude Code subagenti v `.claude/agents/*.md`. Hlavní session = orchestrátor.
 Rotace na fázi: **product** (kritéria) → **backend-dev** → **frontend-dev** → **devops** →
-**qa** (testy+`/verify`) → **master** (sign-off) → **commit**.
-- Kontrolní role (product, qa, master) read-only. Škáluj obřad podle změny. Model tiering (dev
-  sonnet, kontrola opus). 1 commit = 1 increment po master ✓, bez co-author traileru.
+**e2e** (Playwright v Dockeru, prokliká flow) → **qa** (testy+`/verify`) → **master** (sign-off)
+→ **commit**.
+- Kontrolní role (product, qa, master) read-only; e2e píše jen do `tests/e2e/`. Škáluj obřad
+  podle změny. Model tiering (dev+e2e sonnet, kontrola opus). 1 commit = 1 increment po
+  master ✓, bez co-author traileru.
 
 ## Tech stack (2026-07)
 - PHP 8.5 · Docker `php:8.5-fpm` + nginx.

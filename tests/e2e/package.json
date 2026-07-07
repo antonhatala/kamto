@@ -1,0 +1,11 @@
+{
+	"name": "kamto-e2e",
+	"private": true,
+	"description": "Playwright E2E harness for Kamto. Run via `docker compose run --rm e2e` from the repo root — never installed on the host.",
+	"scripts": {
+		"test": "playwright test"
+	},
+	"devDependencies": {
+		"@playwright/test": "1.61.0"
+	}
+}

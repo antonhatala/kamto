@@ -1,0 +1,36 @@
+# Kamto — build context filter. Locally the image only COPYs docker/php.ini (sources are
+# bind-mounted), ale ve Fázi 6 přibude `COPY . .` do produkčního image — tenhle soubor
+# zajišťuje, že se do něj nezapečou tajnosti, git historie ani lokální build/runtime smetí.
+
+# Tajnosti — NIKDY do image (heslo/hash jde přes env APP_PASSWORD_HASH).
+config/config.local.neon
+config/local/
+.env
+
+# Git / editor / agenti
+.git/
+.gitignore
+.idea/
+.claude/
+.DS_Store
+
+# Závislosti — instalují se při buildu image (composer install / npm ci), ne kopírují z hostu.
+vendor/
+node_modules/
+
+# Runtime adresáře — jen placeholder .gitignore, ať `COPY . .` vytvoří prázdné adresáře.
+temp/*
+!temp/.gitignore
+log/*
+!log/.gitignore
+var/*
+!var/.gitignore
+
+# Vývoj / CI — v produkčním image nemají co dělat.
+tests/
+docs/
+phpstan.neon
+Dockerfile
+docker-compose.yml
+docker-compose.override.yml
+.dockerignore
