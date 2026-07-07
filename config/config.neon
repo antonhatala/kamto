@@ -3,6 +3,16 @@ parameters:
 	# on production supplied via the APP_PASSWORD_HASH environment variable.
 	appPasswordHash: %env.APP_PASSWORD_HASH%
 
+	# DB brána (Fáze 1) — lokální default je PdoSqliteDb nad var/kamto.db (%rootDir% =
+	# projekt root, viz Nette\Bootstrap\Configurator). `url`/`token` je tvar připravený pro
+	# LibsqlDb (nativní libSQL extension) — reálně zapojené (driver: libsql +
+	# %env.DATABASE_URL%/%env.DATABASE_TOKEN%) až ve Fázi 6 (Bunny deploy).
+	database:
+		driver: pdo-sqlite
+		path: %rootDir%/var/kamto.db
+		url: ''
+		token: ''
+
 application:
 	mapping: App\Presenters\*Presenter
 
@@ -14,3 +24,7 @@ http:
 services:
 	router: App\Router\RouterFactory::createRouter
 	authenticator: App\Security\SinglePasswordAuthenticator(%appPasswordHash%)
+	database: App\Database\DbFactory::create(%database%)
+	- App\Model\CategoryRepository
+	- App\Model\ServiceRepository
+	- App\Model\PaymentRepository

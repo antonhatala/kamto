@@ -93,12 +93,15 @@ docker compose up -d --build          # app: http://localhost:8080 · Adminer: h
 docker compose run --rm composer install     # PHP závislosti (poprvé / po změně composer.json)
 docker compose run --rm node npm install     # JS závislosti (poprvé / po změně package.json)
 docker compose run --rm node npm run css     # build Tailwind CSS (watch: `... npm run css:watch`)
-docker compose run --rm php php bin/migrate.php   # aplikuje migrace (od Fáze 1)
+docker compose run --rm php php bin/migrate.php   # aplikuje migrace (vytvoří var/kamto.db)
 docker compose run --rm composer test        # PHPStan + nette/tester
 docker compose down                   # zastavit a uklidit
 ```
 `composer`/`node` jsou one-shot tooling služby (profil `tools`, mimo `docker compose up`) —
 `docker compose run --rm <služba> <příkaz>` je spustí, provede příkaz a kontejner smaže.
+
+**Adminer** (http://localhost:8081): System **SQLite**, Username prázdné, heslo **`kamto`**
+(vstupní heslo Admineru, plugin login-password-less), Database **`/data/kamto.db`**.
 
 ## Fáze (viz docs/PLAN.md)
 0 kostra+login · 1 DB+migrace+schéma · 2 CRUD služeb · 3 platby · 4 přehledy/heatmapa · 5 PWA+UX · 6 deploy Bunny.

@@ -26,8 +26,10 @@ log/*
 var/*
 !var/.gitignore
 
-# Vývoj / CI — v produkčním image nemají co dělat.
+# Vývoj / CI — v produkčním image nemají co dělat. (bin/ a migrations/ v image naopak
+# být MUSÍ — migrace se na Bunny pouští z kontejneru.)
 tests/
+stubs/
 docs/
 phpstan.neon
 Dockerfile

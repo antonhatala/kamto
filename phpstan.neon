@@ -6,4 +6,11 @@ parameters:
 	tmpDir: temp/phpstan
 	paths:
 		- app
+		- bin
 		- tests
+	# Deklarace tříd nativní libSQL extension (ext-libsql, tursodatabase/turso-client-php) —
+	# v tomto image (Fáze 1) není nainstalovaná, viz app/Database/LibsqlDb.php. scanFiles
+	# (ne stubFiles) — jde o kompletně nové, jinak neznámé třídy, ne doplnění PHPDoc
+	# k existujícím.
+	scanFiles:
+		- stubs/LibSQL.stub.php
