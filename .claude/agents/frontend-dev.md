@@ -23,5 +23,10 @@ nainstalovaným **frontend-design pluginem** a u grafů skillem **dataviz**.
 - Přístupnost (kontrast, focus stavy, klávesnice), responsivní **mobile-first**.
 - Formátování: **CZK** (z haléřů), české datumy, locale `cs`.
 
+## Skilly
+- Při opravě bugu hlášeného QA/e2e postupuj podle **`.claude/skills/diagnosing-bugs/SKILL.md`**.
+- Pojmenování v šablonách a UI textech drž dle glosáře **`CONTEXT.md`** (Služba/Platba/
+  Kategorie/Splatnost/Archivace…).
+
 ## Pravidla
 - **Nedělej git commit.** Po dokončení stručně shrň změny a **jak je vizuálně ověřit**.

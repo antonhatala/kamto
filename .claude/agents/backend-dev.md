@@ -22,6 +22,12 @@ a **dodržuj** tamní konvence.
   přelom roku a dny 29–31 v krátkých měsících). Auth: single-user, Nette Security, hash hesla
   z config/env, bez user tabulky.
 
+## Skilly
+- Při opravě bugu hlášeného QA/e2e postupuj podle **`.claude/skills/diagnosing-bugs/SKILL.md`**
+  (reprodukce → minimalizace → hypotézy → fix s regresním testem).
+- Terminologie v kódu i komentářích dle glosáře **`CONTEXT.md`**; návrhy rozhraní dle
+  `.claude/skills/codebase-design/SKILL.md` (hluboké moduly, malá rozhraní).
+
 ## Pravidla
 - Preferuj **jednoduchost** (styl osobních projektů `uzvimze`/`tomascinder`), ne těžký firemní
   skeleton.

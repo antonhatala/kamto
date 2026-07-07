@@ -33,11 +33,14 @@ tests/      nette/tester
 ```
 
 ## Konvence
+- **Terminologie dle glosáře `CONTEXT.md`** (ubiquitous language, CZ ⇄ EN páry) — nové pojmy
+  tam přidávej, kolize hlas.
 - `declare(strict_types=1);` v každém PHP souboru. Odsazení **tabulátory**.
 - Namespace `App\`, PSR-4 `App\` → `app/`. Bez Doctrine — raw SQL v repozitářích (styl `uzvimze`/`tomascinder`).
 - **Peníze = integer haléře** (CZK×100); formátovat až při zobrazení.
 - Datum/čas ISO 8601 v DB; časová zóna `Europe/Prague`; locale `cs`.
 - **PHPStan** (co nejvyšší level) + **nette/tester** tam, kde to dává smysl.
+- Komentáře česky; identifikátory anglicky.
 
 ## Design (světlý, minimalistický, BEZ dark mode)
 - Řídit se **frontend-design pluginem**. Světlé pozadí, vzdušný layout, jemné stíny, zaoblené rohy.
@@ -86,6 +89,10 @@ paralelně:** `security` (bezpečnost BE/FE) ∥ `code-reviewer` (efektivita/min
   jen orchestrátor po `master` sign-offu.
 - Akcelerátor: stejné role lze spustit i přes Workflow v jednom běhu
   (`product → [backend, frontend, devops] → e2e → [security, code-reviewer, qa] → master`).
+- **Vendorované skilly** (`.claude/skills/`, viz tamní README): `code-review` (dvouosá recenze
+  Standards × Spec — používá code-reviewer a master), `diagnosing-bugs` (dev role při opravách),
+  `codebase-design` (terminologie návrhu), `domain-modeling` (glosář `CONTEXT.md`),
+  `writing-great-skills` (autorství vlastních skillů, např. `dataviz` ve Fázi 4).
 
 ## Lokální vývoj
 Na hostu není potřeba **žádný** nástroj (žádné PHP, Composer, Node/npm) — všechno běží přes

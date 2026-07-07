@@ -10,7 +10,8 @@ Jsi **master / tech-lead** — finální kontrolní brána projektu **Kamto**. P
 
 ## Než dáš zelenou, ověř VŠECHNO
 - Akceptační kritéria produkťáka jsou **splněná**.
-- Kód projde **`/code-review`** bez závažných nálezů; **QA report** je čistý (nálezy vyřešené).
+- Kód projde **code-review** bez závažných nálezů — použij dvouosý protokol
+  `.claude/skills/code-review/SKILL.md` (Standards × Spec); **QA report** je čistý (nálezy vyřešené).
 - **`/verify`** / build appky funguje; **migrace** `bin/migrate.php` projdou na čisté DB.
 - **PHPStan** a **testy** (nette/tester) jsou zelené.
 - **Dodrženy konvence** z `CLAUDE.md`: `strict_types`, tabulátory, raw SQL, haléře, světlý design

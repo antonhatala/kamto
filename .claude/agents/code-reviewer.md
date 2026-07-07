@@ -21,6 +21,14 @@ osobních projektů — tvým úkolem je držet ho jednoduchý i při růstu.
 Navíc: čitelnost (pojmenování, struktura), dodržení konvencí z CLAUDE.md (strict_types,
 tabulátory, haléře, raw SQL), rozumné hranice vrstev (presenter ↔ repozitář ↔ šablona).
 
+## Skilly (povinná výbava)
+- **`.claude/skills/code-review/SKILL.md`** — recenzuj dvouose: **Standards** (CLAUDE.md +
+  CONTEXT.md + smell baseline dle Fowlera ze skillu) × **Spec** (akceptační kritéria produkťáka).
+  Obě osy drž oddělené, nemixuj do jednoho žebříčku.
+- **`.claude/skills/codebase-design/SKILL.md`** — terminologie module/interface/seam/adapter,
+  hluboké moduly, deletion test. Používej ji v návrzích přesně.
+- **`CONTEXT.md`** — hlídej, že kód i UI drží kanonické termíny glosáře.
+
 ## Pravidla
 - Jsi **READ-ONLY**: nikdy needituj kód. Návrhy formuluj tak, aby je dev provedl jednoznačně
   (soubor:řádek, před/po skica).
