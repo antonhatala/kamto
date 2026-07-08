@@ -11,11 +11,15 @@ FROM php:8.5-fpm
 # templates) — notably output_buffering=Off. That breaks Nette/Latte: the template
 # starts streaming output before Http\Session can still touch session ini settings,
 # producing "ini_set(): Session ini settings cannot be changed after headers have
-# already been sent". The development template (output_buffering=4096, display_errors
-# on, ...) is the right baseline here; Tracy takes over error display regardless.
-RUN cp /usr/local/etc/php/php.ini-development /usr/local/etc/php/php.ini
+# already been sent". Baseline is the PRODUCTION template (display_errors=Off,
+# expose_php=Off, output_buffering=4096): the same image goes to Bunny in Fáze 6, so it
+# must be safe by default — and local dev loses nothing, Tracy renders errors itself
+# whenever APP_ENV != production (see app/Bootstrap.php). The security-relevant
+# directives are additionally pinned in docker/php.ini so they don't silently regress
+# if this template choice ever changes.
+RUN cp /usr/local/etc/php/php.ini-production /usr/local/etc/php/php.ini
 
-# Europe/Prague throughout the app (CLAUDE.md) — avoids PHP date() falling back to UTC.
+# Kamto overrides + hardening (timezone, display_errors, output_buffering, ...).
 COPY docker/php.ini /usr/local/etc/php/conf.d/kamto.ini
 
 # libSQL extension (tursodatabase/turso-client-php) — ODLOŽENO, stav k 2026-07-07:

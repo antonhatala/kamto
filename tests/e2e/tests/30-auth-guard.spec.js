@@ -1,7 +1,7 @@
 // Session/guard behaviour: unauthenticated users get bounced to the login page, and logging
 // out actually ends the session rather than just changing what's displayed.
 const { test, expect } = require('@playwright/test');
-const { login, pathOf } = require('./helpers');
+const { login, logout, pathOf } = require('./helpers');
 
 test.describe('Auth guard', () => {
 	test('unauthenticated access to / redirects to the login page', async ({ page }) => {
@@ -11,32 +11,30 @@ test.describe('Auth guard', () => {
 		await expect(page.getByRole('heading', { name: 'Kamto' })).toBeVisible();
 	});
 
-	test('unauthenticated direct access to the Home presenter also redirects to login', async ({ page }) => {
-		await page.goto('/home/default');
-
-		expect(pathOf(page)).toBe('/sign/in');
+	test('unauthenticated direct access to protected presenters also redirects to login', async ({ page }) => {
+		for (const path of ['/home/default', '/service/', '/category/']) {
+			await page.goto(path);
+			expect(pathOf(page), `guard for ${path}`).toBe('/sign/in');
+		}
 	});
 
 	test('logging out ends the session — / redirects to login again', async ({ page }) => {
 		await login(page);
-		await expect(page.getByRole('heading', { name: 'Přihlášen' })).toBeVisible();
+		await expect(page).toHaveTitle('Služby – Kamto');
 
-		await page.getByRole('link', { name: 'Odhlásit se' }).click();
-
-		expect(pathOf(page)).toBe('/sign/in');
+		await logout(page);
 		await expect(page.getByText('Byli jste odhlášeni.')).toBeVisible();
 
-		// The session is gone — the protected Home page bounces back to login again.
+		// The session is gone — the protected pages bounce back to login again.
 		await page.goto('/');
 		expect(pathOf(page)).toBe('/sign/in');
 	});
 
 	test('direct access to a protected page after logout redirects to login', async ({ page }) => {
 		await login(page);
-		await page.getByRole('link', { name: 'Odhlásit se' }).click();
-		expect(pathOf(page)).toBe('/sign/in');
+		await logout(page);
 
-		await page.goto('/home/default');
+		await page.goto('/service/');
 		expect(pathOf(page)).toBe('/sign/in');
 	});
 });

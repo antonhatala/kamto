@@ -53,17 +53,24 @@ tests/      nette/tester
 ### Design tokeny (`src/css/app.css`, Tailwind v4 `@theme`)
 - **Neutrální základ:** Tailwind vestavěná škála `stone` (beze změny) — pozadí `stone-50`, text
   `stone-900`, tlumený text `stone-500`, okraje `stone-200`/`stone-300`.
-- **Akcent — „copper/terracotta":** vlastní škála `accent-{50,100,200,500,600,700}`.
-  `#fbf0e6 · #f6dfc9 · #eac29c · #c1622e · #a6501f · #7f3d18`. `accent-600`/`accent-700` mají
-  ověřený kontrast ≥4.5:1 na bílém textu (tlačítka, odkazy); `accent-500` a světlejší jen na
+- **Akcent — „copper/terracotta":** vlastní škála `accent-{50,100,200,300,500,600,700}`.
+  `#fbf0e6 · #f6dfc9 · #eac29c · #dca277 · #c1622e · #a6501f · #7f3d18`. `accent-600`/`accent-700`
+  mají ověřený kontrast ≥4.5:1 na bílém textu (tlačítka, odkazy); `accent-500` a světlejší jen na
   pozadí/okraje/ringy (ne bílý text na nich — kontrast pod AA).
-- **Chyby:** vestavěná Tailwind `red-50`/`red-700` (flash i chyby formuláře).
+- **Chyby:** vestavěná Tailwind `red-50`/`red-600/700` (flash, inline chyby, `.btn-danger`).
 - **Radius:** vestavěná škála (`rounded-lg/xl/2xl`) na inputy/tlačítka/menší prvky + vlastní
-  token `--radius-card: 1.25rem` → utilita `rounded-card` pro hlavní kartu (login).
+  token `--radius-card: 1.25rem` → utilita `rounded-card` pro hlavní karty (login, formuláře).
 - **Spacing:** vestavěná Tailwind v4 škála (`--spacing: 0.25rem` krok), beze změny.
 - **Font:** vestavěný `font-sans` (systémový UI stack) — žádné webfonty (offline-friendly, bez
   závislosti na síti; důležité i pro pozdější PWA/offline).
 - **Focus stavy:** `focus:ring-2 focus:ring-accent-200/300` + `focus:border-accent-500`.
+- **Komponentní třídy** (`@layer components` v `src/css/app.css`, záměrně malá sada):
+  `.input`, `.field-label`, `.field-error`, `.btn-primary`, `.btn-danger`, `.btn-ghost`,
+  `.btn-icon`, `.segment-option` (segmentový radio přepínač) a `.yearly-only` (progresivní
+  odhalení pole přes CSS `:has()`, bez JS).
+- **Barvy kategorií:** serverový whitelist `CategoryPresenter::Palette` (8 tlumených odstínů
+  ladících s terakotou). Pozor: dynamický hex ve `style` atributu vyžaduje `|noescape`
+  (Latte escapuje `#` na `\#` → neplatné CSS); bezpečné jen pro hodnoty z tohoto whitelistu.
 
 ## Datový model (shrnutí, detail v docs/PLAN.md)
 `category`, `service` (opakující se šablona), `payment` (platba za konkrétní období), `_migration`.

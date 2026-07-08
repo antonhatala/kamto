@@ -1,0 +1,18 @@
+{block title}Smazat kategorii – Kamto{/block}
+
+{block content}
+<section class="mx-auto mt-4 max-w-md rounded-card border border-stone-200 bg-white p-6 shadow-sm shadow-stone-200/60 sm:mt-10 sm:p-8">
+	<h1 class="text-lg font-semibold tracking-tight text-stone-900">Smazat kategorii „{$category['name']}"?</h1>
+
+	<p n:if="$serviceCount > 0" class="mt-2 text-sm text-stone-500">
+		U {$serviceCount} {$serviceCount === 1 ? 'služby' : 'služeb'} se kategorie odebere (zůstanou bez kategorie).
+	</p>
+	<p n:if="$serviceCount === 0" class="mt-2 text-sm text-stone-500">Žádná služba tuto kategorii nepoužívá.</p>
+
+	<div class="mt-6 flex items-center gap-3">
+		<form method="post" action="{link delete!, $category['id']}">
+			<button type="submit" class="btn-danger">Smazat kategorii</button>
+		</form>
+		<a n:href="default" class="btn-ghost">Zrušit</a>
+	</div>
+</section>

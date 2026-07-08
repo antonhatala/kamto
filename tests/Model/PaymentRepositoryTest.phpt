@@ -18,14 +18,12 @@ $serviceId = $services->insert([
 	'amount' => 1500000,
 	'period' => 'monthly',
 	'due_day' => 5,
-	'created_at' => '2026-01-01T00:00:00+01:00',
 ]);
 $otherServiceId = $services->insert([
 	'name' => 'Elektřina',
 	'amount' => 250000,
 	'period' => 'monthly',
 	'due_day' => 10,
-	'created_at' => '2026-01-01T00:00:00+01:00',
 ]);
 
 Assert::null($payments->find(1));
@@ -37,7 +35,6 @@ $janId = $payments->insert([
 	'period_month' => 1,
 	'due_date' => '2026-01-05',
 	'amount' => 1500000,
-	'created_at' => '2026-01-01T00:00:00+01:00',
 ]);
 $febId = $payments->insert([
 	'service_id' => $serviceId,
@@ -47,7 +44,6 @@ $febId = $payments->insert([
 	'paid_date' => '2026-02-03',
 	'amount' => 1500000,
 	'note' => 'Zaplaceno dřív',
-	'created_at' => '2026-02-01T00:00:00+01:00',
 ]);
 $otherJanId = $payments->insert([
 	'service_id' => $otherServiceId,
@@ -55,12 +51,13 @@ $otherJanId = $payments->insert([
 	'period_month' => 1,
 	'due_date' => '2026-01-10',
 	'amount' => 250000,
-	'created_at' => '2026-01-01T00:00:00+01:00',
 ]);
 
 $jan = $payments->find($janId);
 Assert::same($serviceId, $jan['service_id']);
 Assert::null($jan['paid_date']);
+// created_at si generuje repozitář sám — sjednoceno se ServiceRepository::insert().
+Assert::truthy($jan['created_at']);
 
 $found = $payments->findByServiceAndPeriod($serviceId, 2026, 2);
 Assert::same($febId, $found['id']);
@@ -89,7 +86,6 @@ Assert::exception(
 		'period_month' => 1,
 		'due_date' => '2026-01-06',
 		'amount' => 1000,
-		'created_at' => '2026-01-01T00:00:00+01:00',
 	]),
 	PDOException::class,
 );

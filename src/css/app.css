@@ -23,6 +23,7 @@
 	--color-accent-50: #fbf0e6;
 	--color-accent-100: #f6dfc9;
 	--color-accent-200: #eac29c;
+	--color-accent-300: #dca277;
 	--color-accent-500: #c1622e;
 	--color-accent-600: #a6501f;
 	--color-accent-700: #7f3d18;
@@ -30,4 +31,65 @@
 	/* Bespoke radius for the primary "card" surfaces (login card etc.), on top of
 	   Tailwind's default rounded-lg/xl/2xl scale used everywhere else. */
 	--radius-card: 1.25rem;
+}
+
+/*
+ * Small shared component classes (Phase 2) — form controls and buttons repeat across
+ * Sign/Service/Category templates, so the recurring utility soups live here. Deliberately
+ * a tiny set (inputs + buttons + one segmented control), not a component library.
+ */
+@layer components {
+	.field-label {
+		@apply mb-1.5 block text-sm font-medium text-stone-700;
+	}
+
+	.field-error {
+		@apply mt-1.5 text-sm text-red-600;
+	}
+
+	.input {
+		@apply w-full rounded-xl border border-stone-300 bg-white px-3.5 py-2.5 text-stone-900 shadow-sm transition placeholder:text-stone-400 focus:border-accent-500 focus:outline-none focus:ring-2 focus:ring-accent-200;
+	}
+
+	.btn-primary {
+		@apply inline-flex items-center justify-center rounded-xl bg-accent-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-accent-700 focus:outline-none focus:ring-2 focus:ring-accent-300 focus:ring-offset-2;
+	}
+
+	.btn-danger {
+		@apply inline-flex items-center justify-center rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300 focus:ring-offset-2;
+	}
+
+	.btn-ghost {
+		@apply inline-flex items-center rounded-lg px-2.5 py-1.5 text-sm font-medium text-stone-500 transition hover:bg-stone-100 hover:text-stone-900 focus:outline-none focus:ring-2 focus:ring-accent-200;
+	}
+
+	.btn-icon {
+		@apply inline-flex h-8 w-8 items-center justify-center rounded-lg text-stone-400 transition hover:bg-stone-100 hover:text-stone-700 focus:outline-none focus:ring-2 focus:ring-accent-200;
+	}
+
+	/* Segmented control (radio group rendered as a pill row, e.g. the period field). */
+	.segment-option {
+		@apply flex cursor-pointer select-none items-center justify-center rounded-lg px-3 py-2 text-sm font-medium text-stone-500 transition;
+	}
+
+	.segment-option:has(:checked) {
+		@apply bg-white text-stone-900 shadow-sm;
+	}
+
+	.segment-option:has(:focus-visible) {
+		@apply ring-2 ring-accent-300;
+	}
+
+	/*
+	 * Progressive disclosure without JS: fields wrapped in .yearly-only show only while
+	 * the "yearly" period radio is checked (pure CSS :has(), baseline in all browsers).
+	 * Server-side validation stays authoritative — this is a display concern only.
+	 */
+	.yearly-only {
+		display: none;
+	}
+
+	form:has(input[name="period"][value="yearly"]:checked) .yearly-only {
+		display: block;
+	}
 }

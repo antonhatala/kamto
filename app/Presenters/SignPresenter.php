@@ -4,11 +4,20 @@ declare(strict_types=1);
 
 namespace App\Presenters;
 
+use App\Forms\FormFactory;
+use App\Security\LoginThrottle;
+use Nette\Application\Attributes\Requires;
 use Nette\Application\UI\Form;
 use Nette\Security\AuthenticationException;
 
 final class SignPresenter extends BasePresenter
 {
+	public function __construct(
+		private readonly LoginThrottle $loginThrottle,
+		private readonly FormFactory $formFactory,
+	) {
+	}
+
 	public function actionIn(): void
 	{
 		// Already signed in? The login page makes no sense — go home.
@@ -17,6 +26,9 @@ final class SignPresenter extends BasePresenter
 		}
 	}
 
+	// Odhlášení mění stav (invaliduje session) → jen POST + same-origin (CSRF), viz šablona
+	// (formulář/tlačítko v hlavičce), ne obyčejný <a href> GET odkaz.
+	#[Requires(methods: 'POST', sameOrigin: true)]
 	public function actionOut(): void
 	{
 		$this->getUser()->logout(true);
@@ -26,7 +38,7 @@ final class SignPresenter extends BasePresenter
 
 	protected function createComponentSignInForm(): Form
 	{
-		$form = new Form;
+		$form = $this->formFactory->create();
 		$form->addPassword('password', 'Heslo:')
 			->setRequired('Zadejte heslo.');
 
@@ -40,11 +52,20 @@ final class SignPresenter extends BasePresenter
 
 	public function signInFormSucceeded(Form $form, \stdClass $values): void
 	{
+		$wait = $this->loginThrottle->secondsUntilRetry();
+		if ($wait > 0) {
+			$form->addError(sprintf('Příliš mnoho neúspěšných pokusů. Zkuste to znovu za %d s.', $wait));
+
+			return;
+		}
+
 		try {
 			// Single-user app — no username field, the authenticator only checks the password.
 			$this->getUser()->login('', $values->password);
+			$this->loginThrottle->registerSuccess();
 			$this->redirect('Home:default');
 		} catch (AuthenticationException) {
+			$this->loginThrottle->registerFailure();
 			$form->addError('Nesprávné heslo.');
 		}
 	}

@@ -16,15 +16,26 @@ parameters:
 application:
 	mapping: App\Presenters\*Presenter
 
+latte:
+	extensions:
+		- App\Latte\MoneyExtension
+
 http:
 	headers:
 		# Don't advertise the framework in responses.
 		X-Powered-By: null
+		# Baseline hardening (bezpečnostní review Fáze 2) — brání MIME sniffingu a omezuje únik
+		# URL v Referer hlavičce mimo vlastní origin. CSP až Fáze 5/6 (řeší se se statickými assety/PWA).
+		X-Content-Type-Options: nosniff
+		Referrer-Policy: same-origin
 
 services:
 	router: App\Router\RouterFactory::createRouter
 	authenticator: App\Security\SinglePasswordAuthenticator(%appPasswordHash%)
 	database: App\Database\DbFactory::create(%database%)
+	loginThrottle: App\Security\LoginThrottle(%tempDir%/login-throttle.json)
+	- App\Forms\FormTranslator
+	- App\Forms\FormFactory
 	- App\Model\CategoryRepository
 	- App\Model\ServiceRepository
 	- App\Model\PaymentRepository

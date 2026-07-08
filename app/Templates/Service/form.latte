@@ -1,0 +1,67 @@
+{block title}{$service ? 'Upravit službu' : 'Přidat službu'} – Kamto{/block}
+
+{block content}
+{embed '../_formCard.latte', formName: 'serviceForm', heading: $service ? 'Upravit službu' : 'Přidat službu'}
+	{block fields}
+		<div>
+			<label n:name="name" class="field-label">Název</label>
+			<input n:name="name" class="input" placeholder="Netflix">
+			<p class="field-error" n:ifcontent>{inputError name}</p>
+		</div>
+
+		<div>
+			<label n:name="amount" class="field-label">Částka (Kč)</label>
+			<input n:name="amount" class="input" placeholder="299">
+			<p class="field-error" n:ifcontent>{inputError amount}</p>
+		</div>
+
+		<fieldset>
+			<legend class="field-label">Perioda</legend>
+			<div class="grid grid-cols-2 gap-1 rounded-xl bg-stone-100 p-1">
+				<label class="segment-option">
+					<input n:name="period:monthly" class="sr-only">
+					Měsíčně
+				</label>
+				<label class="segment-option">
+					<input n:name="period:yearly" class="sr-only">
+					Ročně
+				</label>
+			</div>
+			<p class="field-error" n:ifcontent>{inputError period}</p>
+		</fieldset>
+
+		<div class="grid grid-cols-2 items-start gap-4">
+			<div>
+				<label n:name="due_day" class="field-label">Den splatnosti</label>
+				<input n:name="due_day" class="input">
+				<p class="mt-1.5 text-xs text-stone-500">U kratších měsíců platí poslední den měsíce.</p>
+				<p class="field-error" n:ifcontent>{inputError due_day}</p>
+			</div>
+			{* .yearly-only: viditelné jen při zvolené roční periodě (čisté CSS :has(), bez JS
+			   — viz src/css/app.css). Server vynucuje povinnost pole nezávisle na zobrazení. *}
+			<div class="yearly-only">
+				<label n:name="due_month" class="field-label">Měsíc splatnosti</label>
+				<select n:name="due_month" class="input"></select>
+				<p class="field-error" n:ifcontent>{inputError due_month}</p>
+			</div>
+		</div>
+
+		<div>
+			<label n:name="category_id" class="field-label">Kategorie</label>
+			<select n:name="category_id" class="input"></select>
+			<p class="field-error" n:ifcontent>{inputError category_id}</p>
+		</div>
+
+		<div>
+			<label n:name="icon" class="field-label">Ikona (emoji)</label>
+			<input n:name="icon" class="input w-20 text-center text-lg" placeholder="📺">
+			<p class="field-error" n:ifcontent>{inputError icon}</p>
+		</div>
+
+		<div>
+			<label n:name="note" class="field-label">Poznámka</label>
+			<textarea n:name="note" class="input" rows="3"></textarea>
+			<p class="field-error" n:ifcontent>{inputError note}</p>
+		</div>
+	{/block}
+{/embed}

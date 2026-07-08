@@ -12,6 +12,8 @@
 		</div>
 
 		<div class="rounded-card border border-stone-200 bg-white p-6 shadow-sm shadow-stone-200/60 sm:p-8">
+			{* Nepřihlášená stránka — flash zprávy (např. po odhlášení) se vykreslují tady
+			   uvnitř karty, centralizované flashe v @layout jsou jen pro přihlášený chrome. *}
 			<div n:if="$flashes" class="mb-5 space-y-2">
 				<p n:foreach="$flashes as $flash"
 					n:class="'rounded-lg px-3 py-2 text-sm', $flash->type === 'error' ? 'bg-red-50 text-red-700' : 'bg-accent-50 text-accent-700'"
@@ -24,14 +26,11 @@
 				</div>
 
 				<div>
-					<label n:name="password" class="mb-1.5 block text-sm font-medium text-stone-700">Heslo</label>
-					<input n:name="password" autofocus autocomplete="current-password" placeholder="••••••••"
-						class="w-full rounded-xl border border-stone-300 bg-white px-4 py-2.5 text-stone-900 shadow-sm transition placeholder:text-stone-400 focus:border-accent-500 focus:outline-none focus:ring-2 focus:ring-accent-200">
+					<label n:name="password" class="field-label">Heslo</label>
+					<input n:name="password" class="input" autofocus autocomplete="current-password" placeholder="••••••••">
 				</div>
 
-				<button n:name="send"
-					class="w-full rounded-xl bg-accent-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-accent-700 focus:outline-none focus:ring-2 focus:ring-accent-300 focus:ring-offset-2"
-				>Přihlásit se</button>
+				<button n:name="send" class="btn-primary w-full">Přihlásit se</button>
 			</form>
 		</div>
 	</div>

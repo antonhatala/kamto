@@ -3,12 +3,14 @@
 declare(strict_types=1);
 
 use App\Model\CategoryRepository;
+use App\Model\ServiceRepository;
 use Tester\Assert;
 use Tests\Helpers\TestDatabase;
 
 require __DIR__ . '/../bootstrap.php';
 
-$repo = new CategoryRepository(TestDatabase::create());
+$db = TestDatabase::create();
+$repo = new CategoryRepository($db);
 
 Assert::same([], $repo->findAll());
 Assert::null($repo->find(1));
@@ -50,6 +52,19 @@ $updated = $repo->find($id1);
 Assert::same('Bydlení a energie', $updated['name']);
 Assert::same('#a6501f', $updated['color']);
 Assert::same(3, $updated['sort_order']);
+
+// countServices() — 0, dokud na kategorii nic neukazuje; jinak počet služeb s daným category_id.
+$services = new ServiceRepository($db);
+Assert::same(0, $repo->countServices($id1));
+
+$services->insert(['name' => 'Nájem', 'amount' => 1000000, 'period' => 'monthly', 'due_day' => 1, 'category_id' => $id1]);
+$services->insert(['name' => 'Elektřina', 'amount' => 250000, 'period' => 'monthly', 'due_day' => 15, 'category_id' => $id1]);
+$services->insert(['name' => 'Netflix', 'amount' => 29900, 'period' => 'monthly', 'due_day' => 5, 'category_id' => $id2]);
+Assert::same(2, $repo->countServices($id1));
+Assert::same(1, $repo->countServices($id2));
+
+// nextSortOrder() — o jedno za nejvyšším sort_order (id1 má 3 po update výše).
+Assert::same(4, $repo->nextSortOrder());
 
 $repo->delete($id1);
 Assert::null($repo->find($id1));

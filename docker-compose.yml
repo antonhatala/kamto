@@ -4,8 +4,8 @@ services:
     volumes:
       - .:/var/www/html
     environment:
-      # Debug/Tracy mode is enabled unless APP_ENV=production (see app/Bootstrap.php).
-      # Override for a production-like run: APP_ENV=production docker compose up -d
+      # Debug/Tracy mode is enabled only for APP_ENV=development|local (fail-closed allowlist
+      # — see app/Bootstrap.php). Override for a production-like run: APP_ENV=production docker compose up -d
       APP_ENV: ${APP_ENV:-development}
       # Optional — locally the login password hash comes from the gitignored
       # config/config.local.neon instead. On Bunny this env var is what's actually used.

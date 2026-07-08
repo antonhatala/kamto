@@ -33,6 +33,18 @@ final class ServiceRepository
 		return $this->db->fetchAll('SELECT * FROM service WHERE is_archived = 0 ORDER BY sort_order, id');
 	}
 
+	/** @return list<array<string, mixed>> */
+	public function findArchived(): array
+	{
+		return $this->db->fetchAll('SELECT * FROM service WHERE is_archived = 1 ORDER BY sort_order, id');
+	}
+
+	/** Pořadí pro nový záznam = o jedno za nejvyšším (napříč všemi vč. archivu). */
+	public function nextSortOrder(): int
+	{
+		return (int) $this->db->fetchField('SELECT COALESCE(MAX(sort_order), 0) + 1 FROM service');
+	}
+
 	/**
 	 * @param array{
 	 *     name: string,
@@ -43,7 +55,6 @@ final class ServiceRepository
 	 *     category_id?: int|null,
 	 *     icon?: string|null,
 	 *     note?: string|null,
-	 *     created_at: string,
 	 *     sort_order?: int,
 	 * } $data
 	 */
@@ -62,7 +73,8 @@ final class ServiceRepository
 				$data['category_id'] ?? null,
 				$data['icon'] ?? null,
 				$data['note'] ?? null,
-				$data['created_at'],
+				// created_at si repozitář generuje sám — volající ho neposílá (sjednoceno napříč repozitáři).
+				date(DATE_ATOM),
 				$data['sort_order'] ?? 0,
 			],
 		);
@@ -119,6 +131,25 @@ final class ServiceRepository
 			'UPDATE service SET is_archived = 0, archived_at = NULL WHERE id = ?',
 			[$id],
 		);
+	}
+
+	/**
+	 * Prohodí sort_order dvou služeb v jedné transakci (řazení se sousedem, viz
+	 * ServicePresenter::handleMoveUp/handleMoveDown). Atomické — buď se přehodí obě, nebo nic.
+	 */
+	public function swapSortOrder(int $idA, int $idB): void
+	{
+		$this->db->transaction(function () use ($idA, $idB): void {
+			$orderA = (int) $this->db->fetchField('SELECT sort_order FROM service WHERE id = ?', [$idA]);
+			$orderB = (int) $this->db->fetchField('SELECT sort_order FROM service WHERE id = ?', [$idB]);
+			$this->setSortOrder($idA, $orderB);
+			$this->setSortOrder($idB, $orderA);
+		});
+	}
+
+	private function setSortOrder(int $id, int $sortOrder): void
+	{
+		$this->db->execute('UPDATE service SET sort_order = ? WHERE id = ?', [$sortOrder, $id]);
 	}
 
 	public function delete(int $id): void

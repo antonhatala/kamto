@@ -1,4 +1,4 @@
-// Shared helpers for the sign-in flow, used across spec files.
+// Shared helpers for the sign-in flow and style assertions, used across spec files.
 const { expect } = require('@playwright/test');
 
 /** Navigates straight to the login page and waits for it to render. */
@@ -13,11 +13,20 @@ async function submitLogin(page, password) {
 	await page.getByRole('button', { name: 'Přihlásit se' }).click();
 }
 
-/** Logs in with the given password (the local dev password by default) and waits for Home. */
+/**
+ * Logs in with the given password (the local dev password by default) and waits for the
+ * landing page — Home:default immediately forwards to the service list (/service/).
+ */
 async function login(page, password = 'kamto') {
 	await gotoLogin(page);
 	await submitLogin(page, password);
-	await expect(page).toHaveURL(/\/$/);
+	await expect(page).toHaveURL(/\/service\/(\?.*)?$/);
+}
+
+/** Logs out via the header button (logout is a POST form, not a link) and waits for the login page. */
+async function logout(page) {
+	await page.getByRole('button', { name: 'Odhlásit se' }).click();
+	await expect(page).toHaveURL(/\/sign\/in/);
 }
 
 /** Path portion of the page's current URL, ignoring query string (e.g. flash `?_fid=`). */
@@ -64,4 +73,4 @@ async function waitForTransitionEnd(locator) {
 	}));
 }
 
-module.exports = { gotoLogin, submitLogin, login, pathOf, parseColor, waitForTransitionEnd };
+module.exports = { gotoLogin, submitLogin, login, logout, pathOf, parseColor, waitForTransitionEnd };

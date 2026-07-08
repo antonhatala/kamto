@@ -23,7 +23,6 @@ $serviceId = $services->insert([
 	'period' => 'monthly',
 	'due_day' => 12,
 	'category_id' => $categoryId,
-	'created_at' => '2026-01-01T00:00:00+01:00',
 ]);
 $paymentId = $payments->insert([
 	'service_id' => $serviceId,
@@ -31,7 +30,6 @@ $paymentId = $payments->insert([
 	'period_month' => 1,
 	'due_date' => '2026-01-12',
 	'amount' => 60000,
-	'created_at' => '2026-01-01T00:00:00+01:00',
 ]);
 
 Assert::notSame(null, $payments->find($paymentId));
@@ -46,7 +44,6 @@ $serviceId2 = $services->insert([
 	'period' => 'monthly',
 	'due_day' => 1,
 	'category_id' => $categoryId2,
-	'created_at' => '2026-01-01T00:00:00+01:00',
 ]);
 Assert::same($categoryId2, $services->find($serviceId2)['category_id']);
 
@@ -61,7 +58,6 @@ Assert::exception(
 		'amount' => 100,
 		'period' => 'xxx',
 		'due_day' => 1,
-		'created_at' => '2026-01-01T00:00:00+01:00',
 	]),
 	PDOException::class,
 );
@@ -72,7 +68,6 @@ Assert::exception(
 		'amount' => 100,
 		'period' => 'monthly',
 		'due_day' => 0,
-		'created_at' => '2026-01-01T00:00:00+01:00',
 	]),
 	PDOException::class,
 );
@@ -84,7 +79,6 @@ Assert::exception(
 		'period_month' => 13,
 		'due_date' => '2026-12-01',
 		'amount' => 100,
-		'created_at' => '2026-01-01T00:00:00+01:00',
 	]),
 	PDOException::class,
 );

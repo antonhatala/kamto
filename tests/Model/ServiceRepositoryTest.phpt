@@ -18,7 +18,6 @@ $id = $repo->insert([
 	'amount' => 29900,
 	'period' => 'monthly',
 	'due_day' => 15,
-	'created_at' => '2026-01-01T00:00:00+01:00',
 ]);
 Assert::same(1, $id);
 
@@ -31,6 +30,9 @@ Assert::null($service['due_month']);
 Assert::null($service['category_id']);
 Assert::same(0, $service['is_archived']);
 Assert::null($service['archived_at']);
+// created_at si generuje repozitář sám (dnešní datum, ISO 8601) — volající ho neposílá.
+Assert::truthy($service['created_at']);
+Assert::same(date('Y-m-d'), substr($service['created_at'], 0, 10));
 
 $yearlyId = $repo->insert([
 	'name' => 'Doména',
@@ -40,7 +42,6 @@ $yearlyId = $repo->insert([
 	'due_month' => 6,
 	'icon' => '🌐',
 	'note' => 'Roční poplatek',
-	'created_at' => '2026-01-01T00:00:00+01:00',
 	'sort_order' => 5,
 ]);
 $yearly = $repo->find($yearlyId);
@@ -95,10 +96,38 @@ $tieId = $repo->insert([
 	'amount' => 100,
 	'period' => 'monthly',
 	'due_day' => 1,
-	'created_at' => '2026-01-01T00:00:00+01:00',
 	'sort_order' => 5,
 ]);
 Assert::same(
 	[$yearlyId, $tieId],
 	array_column($repo->findAll(), 'id'),
 );
+
+// findArchived() — nový záznam archivujeme, ostatní zůstávají aktivní.
+Assert::same([], $repo->findArchived());
+$repo->archive($yearlyId);
+$archivedList = $repo->findArchived();
+Assert::count(1, $archivedList);
+Assert::same($yearlyId, $archivedList[0]['id']);
+$repo->reactivate($yearlyId);
+
+// nextSortOrder() — o jedno za nejvyšším napříč všemi (vč. archivu). yearlyId i tieId mají 5.
+Assert::same(6, $repo->nextSortOrder());
+
+// Nový záznam s distinktním pořadím dá čitelný swap. nextSortOrder() ho odvodí (6).
+$swapId = $repo->insert([
+	'name' => 'Řazení',
+	'amount' => 100,
+	'period' => 'monthly',
+	'due_day' => 1,
+	'sort_order' => $repo->nextSortOrder(),
+]);
+Assert::same(6, (int) $repo->find($swapId)['sort_order']);
+$repo->archive($swapId); // Archivace nesnižuje maximum — pořadí zůstává vyhrazené.
+Assert::same(7, $repo->nextSortOrder());
+$repo->reactivate($swapId);
+
+// swapSortOrder() — atomicky prohodí pořadí dvou služeb (řazení se sousedem v presenteru).
+$repo->swapSortOrder($yearlyId, $swapId); // yearly=5, swap=6
+Assert::same(6, (int) $repo->find($yearlyId)['sort_order']);
+Assert::same(5, (int) $repo->find($swapId)['sort_order']);

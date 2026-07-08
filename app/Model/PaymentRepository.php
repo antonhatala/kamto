@@ -68,7 +68,6 @@ final class PaymentRepository
 	 *     paid_date?: string|null,
 	 *     amount: int,
 	 *     note?: string|null,
-	 *     created_at: string,
 	 * } $data
 	 */
 	public function insert(array $data): int
@@ -85,7 +84,8 @@ final class PaymentRepository
 				$data['paid_date'] ?? null,
 				$data['amount'],
 				$data['note'] ?? null,
-				$data['created_at'],
+				// created_at si repozitář generuje sám — sjednoceno se ServiceRepository::insert().
+				date(DATE_ATOM),
 			],
 		);
 

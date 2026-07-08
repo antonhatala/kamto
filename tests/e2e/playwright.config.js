@@ -6,7 +6,12 @@ const { defineConfig, devices } = require('@playwright/test');
 
 module.exports = defineConfig({
 	testDir: './tests',
-	fullyParallel: true,
+	globalSetup: require.resolve('./global-setup'),
+	// The whole suite shares one server-side SQLite DB and one global login throttle, and the
+	// Phase 2 CRUD specs build on each other's data (numbered spec files define the order) —
+	// so tests run in a single worker, strictly in declaration order. No parallelism.
+	fullyParallel: false,
+	workers: 1,
 	forbidOnly: !!process.env.CI,
 	retries: 0,
 	reporter: [['list'], ['html', { open: 'never', outputFolder: 'playwright-report' }]],

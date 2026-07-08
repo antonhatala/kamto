@@ -26,6 +26,18 @@ final class CategoryRepository
 		return $this->db->fetch('SELECT * FROM category WHERE id = ?', [$id]);
 	}
 
+	/** Počet služeb v kategorii — pro potvrzení smazání (viz CategoryPresenter::actionDelete). */
+	public function countServices(int $categoryId): int
+	{
+		return (int) $this->db->fetchField('SELECT COUNT(*) FROM service WHERE category_id = ?', [$categoryId]);
+	}
+
+	/** Pořadí pro novou kategorii = o jedno za nejvyšším. */
+	public function nextSortOrder(): int
+	{
+		return (int) $this->db->fetchField('SELECT COALESCE(MAX(sort_order), 0) + 1 FROM category');
+	}
+
 	/** @param array{name: string, color: string, sort_order?: int} $data */
 	public function insert(array $data): int
 	{

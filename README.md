@@ -11,17 +11,21 @@ Hosting: Bunny.net (Magic Containers + Bunny Database + CDN).
 Detaily: [`docs/PLAN.md`](docs/PLAN.md) a [`CLAUDE.md`](CLAUDE.md).
 
 ## Vývoj (lokálně)
+Stačí Docker — na hostu není potřeba PHP, Composer ani Node.
 ```bash
-docker compose up            # app: http://localhost:8080 · Adminer: http://localhost:8081
-npm install && npm run css   # build Tailwind CSS
-php bin/migrate.php           # migrace
-composer test                # PHPStan + testy
+docker compose up -d --build                      # app: http://localhost:8080 · Adminer: http://localhost:8081
+docker compose run --rm composer install          # PHP závislosti
+docker compose run --rm node npm run css          # build Tailwind CSS
+docker compose run --rm php php bin/migrate.php   # migrace (vytvoří var/kamto.db)
+docker compose run --rm composer test             # PHPStan + testy
 ```
 
 ## Tým / proces
 Projekt staví virtuální tým agentů (`.claude/agents/`): `product`, `backend-dev`, `frontend-dev`,
-`devops`, `qa`, `master`. Rotace na fázi: product → backend → frontend → devops → qa → master →
-commit. Viz [`CLAUDE.md`](CLAUDE.md).
+`devops`, `e2e`, `security`, `code-reviewer`, `qa`, `master`. Rotace na fázi:
+product → backend → frontend → devops → e2e → kontroly paralelně (security ∥ code-reviewer ∥ qa)
+→ master → commit. Sdílené postupy má tým vendorované v `.claude/skills/`.
+Detaily viz [`CLAUDE.md`](CLAUDE.md).
 
 ## Fáze
 0 kostra+login · 1 DB+migrace+schéma · 2 CRUD služeb · 3 platby · 4 přehledy/heatmapa · 5 PWA+UX · 6 deploy Bunny.

@@ -11,7 +11,11 @@ final class Bootstrap
 	public static function boot(): Configurator
 	{
 		$appDir = dirname(__DIR__);
-		$debugMode = getenv('APP_ENV') !== 'production';
+
+		// Fail-closed: debug/Tracy zapnuté jen pro explicitní vývojové prostředí (allowlist).
+		// Chybějící proměnná i překlep (cokoliv jiného než 'development'/'local') → produkční
+		// režim. docker-compose lokálně nastavuje APP_ENV=development (viz docker-compose.yml).
+		$debugMode = in_array(getenv('APP_ENV'), ['development', 'local'], true);
 
 		$configurator = new Configurator;
 		$configurator->setDebugMode($debugMode);
