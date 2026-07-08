@@ -11,7 +11,7 @@
 
 		<div>
 			<label n:name="amount" class="field-label">Částka (Kč)</label>
-			<input n:name="amount" class="input" placeholder="299">
+			<input n:name="amount" class="input" placeholder="299" autocomplete="off">
 			<p class="field-error" n:ifcontent>{inputError amount}</p>
 		</div>
 
@@ -33,28 +33,29 @@
 		<div class="grid grid-cols-2 items-start gap-4">
 			<div>
 				<label n:name="due_day" class="field-label">Den splatnosti</label>
-				<input n:name="due_day" class="input">
-				<p class="mt-1.5 text-xs text-stone-500">U kratších měsíců platí poslední den měsíce.</p>
+				<input n:name="due_day" class="input" placeholder="15" autocomplete="off">
+				<p class="mt-1.5 text-xs text-stone-500">Den v měsíci (1–31), kdy službu platíš. U kratších měsíců platí poslední den.</p>
 				<p class="field-error" n:ifcontent>{inputError due_day}</p>
 			</div>
 			{* .yearly-only: viditelné jen při zvolené roční periodě (čisté CSS :has(), bez JS
 			   — viz src/css/app.css). Server vynucuje povinnost pole nezávisle na zobrazení. *}
 			<div class="yearly-only">
 				<label n:name="due_month" class="field-label">Měsíc splatnosti</label>
-				<select n:name="due_month" class="input"></select>
+				<select n:name="due_month" class="select"></select>
 				<p class="field-error" n:ifcontent>{inputError due_month}</p>
 			</div>
 		</div>
 
 		<div>
 			<label n:name="category_id" class="field-label">Kategorie</label>
-			<select n:name="category_id" class="input"></select>
+			<select n:name="category_id" class="select"></select>
 			<p class="field-error" n:ifcontent>{inputError category_id}</p>
 		</div>
 
 		<div>
 			<label n:name="icon" class="field-label">Ikona (emoji)</label>
 			<input n:name="icon" class="input w-20 text-center text-lg" placeholder="📺">
+			<p class="mt-1.5 text-xs text-stone-500">Napiš nebo vlož jeden emoji (nepovinné).</p>
 			<p class="field-error" n:ifcontent>{inputError icon}</p>
 		</div>
 

@@ -51,6 +51,18 @@
 		@apply w-full rounded-xl border border-stone-300 bg-white px-3.5 py-2.5 text-stone-900 shadow-sm transition placeholder:text-stone-400 focus:border-accent-500 focus:outline-none focus:ring-2 focus:ring-accent-200;
 	}
 
+	/*
+	 * .select — vychází z .input (stejné rozměry/border/focus), ale pro nativní <select>:
+	 * appearance-none skryje OS šipku, nahradí ji vlastní SVG chevron (barva ladí se
+	 * stone-500), right-aligned s prostorem v pr-10.
+	 */
+	.select {
+		@apply w-full appearance-none rounded-xl border border-stone-300 bg-white bg-no-repeat py-2.5 pl-3.5 pr-10 text-stone-900 shadow-sm transition focus:border-accent-500 focus:outline-none focus:ring-2 focus:ring-accent-200;
+		background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%2378716c' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
+		background-position: right 0.75rem center;
+		background-size: 1rem 1rem;
+	}
+
 	.btn-primary {
 		@apply inline-flex items-center justify-center rounded-xl bg-accent-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-accent-700 focus:outline-none focus:ring-2 focus:ring-accent-300 focus:ring-offset-2;
 	}
