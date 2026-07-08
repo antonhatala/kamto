@@ -30,7 +30,7 @@
 				{/if}
 				<div class="min-w-0 flex-1">
 					<div class="flex items-baseline justify-between gap-3">
-						<a n:href="edit, $service['id']" class="truncate rounded font-medium text-stone-900 transition hover:text-accent-700 focus:outline-none focus:ring-2 focus:ring-accent-200">{$service['name']}</a>
+						<a n:href="detail, $service['id']" class="truncate rounded font-medium text-stone-900 transition hover:text-accent-700 focus:outline-none focus:ring-2 focus:ring-accent-200">{$service['name']}</a>
 						<span class="shrink-0 font-semibold tabular-nums text-stone-900">{$service['amount']|czk}</span>
 					</div>
 					<div class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-stone-500">
@@ -97,7 +97,7 @@
 				<span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-stone-100 text-sm font-semibold text-stone-400" aria-hidden="true">{mb_strtoupper(mb_substr($service['name'], 0, 1))}</span>
 			{/if}
 			<div class="min-w-0 flex-1">
-				<p class="truncate text-sm font-medium text-stone-500">{$service['name']}</p>
+				<a n:href="detail, $service['id']" class="block truncate rounded text-sm font-medium text-stone-500 transition hover:text-accent-700 focus:outline-none focus:ring-2 focus:ring-accent-200">{$service['name']}</a>
 				<p class="mt-0.5 truncate text-xs text-stone-400">
 					{$service['amount']|czk}
 					· {$service['period'] === 'yearly' ? 'Ročně' : 'Měsíčně'}

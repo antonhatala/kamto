@@ -6,23 +6,38 @@ namespace App\Presenters;
 
 use App\Forms\FormFactory;
 use App\Model\CategoryRepository;
+use App\Model\PaymentRepository;
 use App\Model\ServiceRepository;
+use App\Payment\CategoryDisplay;
+use App\Payment\ServiceHistory;
+use App\Support\Clock;
 use App\Support\Money;
 use App\Support\Months;
 use Nette\Application\Attributes\Requires;
 use Nette\Application\UI\Form;
 use Nette\Forms\Control;
 
-/** Seznam/CRUD služeb (šablon plateb) — archivace/reaktivace a ruční řazení, Fáze 2. */
+/** Seznam/CRUD služeb (šablon plateb) — archivace/reaktivace a ruční řazení, Fáze 2;
+ * detail s historií plateb, Fáze 4. */
 final class ServicePresenter extends SecuredPresenter
 {
 	/** @var array<string, mixed>|null Editovaná služba (null v `add`), viz actionEdit(). */
 	private ?array $editedService = null;
 
+	/**
+	 * Zobrazená služba (detail) — nastaví actionDetail() (běží před renderem, viz
+	 * Presenter::run()); nenulovatelné jako HomePresenter::$year/$month, ne tristate jako
+	 * $editedService výše (ten null legitimně znamená "režim Add", tohle ne).
+	 * @var array<string, mixed>
+	 */
+	private array $detailedService;
+
 	public function __construct(
 		private readonly ServiceRepository $serviceRepository,
 		private readonly CategoryRepository $categoryRepository,
+		private readonly PaymentRepository $paymentRepository,
 		private readonly FormFactory $formFactory,
+		private readonly Clock $clock,
 	) {
 	}
 
@@ -58,6 +73,32 @@ final class ServicePresenter extends SecuredPresenter
 	public function renderForm(): void
 	{
 		$this->template->service = $this->editedService;
+	}
+
+	/**
+	 * Detail služby s historií plateb (Fáze 4) — find(), NE findActive(): detail musí fungovat
+	 * i pro archivovanou službu (historie zůstává čitelná, viz CONTEXT.md "Archivace").
+	 */
+	public function actionDetail(int $id): void
+	{
+		$service = $this->serviceRepository->find($id);
+		if ($service === null) {
+			$this->error('Služba nenalezena.');
+		}
+
+		$this->detailedService = $service; // $this->error() výše vždy ukončí request (throws) — sem se dostane jen non-null.
+	}
+
+	public function renderDetail(): void
+	{
+		$service = $this->detailedService;
+		$payments = $this->paymentRepository->findByService((int) $service['id']);
+		$category = $service['category_id'] !== null ? $this->categoryRepository->find((int) $service['category_id']) : null;
+
+		$this->template->service = $service;
+		$this->template->category = CategoryDisplay::resolve($category);
+		$this->template->monthNames = Months::Names;
+		$this->template->history = ServiceHistory::build($this->clock->now(), $service, $payments);
 	}
 
 	// Archivace/reaktivace/řazení mění stav → jen POST signály (automatická same-origin

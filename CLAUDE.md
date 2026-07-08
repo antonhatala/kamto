@@ -67,7 +67,8 @@ tests/      nette/tester
 - **Komponentní třídy** (`@layer components` v `src/css/app.css`, záměrně malá sada):
   `.input`, `.field-label`, `.field-error`, `.btn-primary`, `.btn-danger`, `.btn-ghost`,
   `.btn-icon`, `.segment-option` (segmentový radio přepínač) a `.yearly-only` (progresivní
-  odhalení pole přes CSS `:has()`, bez JS).
+  odhalení pole přes CSS `:has()`, bez JS). Heatmapa: `.heatmap-grid` (13 sloupců, řádky
+  `display:contents`), `.heatmap-cell`, `.hm-box` (čtvercová dlaždice), `.hm-hatch` (šrafování).
 - **Barvy kategorií:** serverový whitelist `CategoryPresenter::Palette` (8 tlumených odstínů
   ladících s terakotou). Pozor: dynamický hex ve `style` atributu vyžaduje `|noescape`
   (Latte escapuje `#` na `\#` → neplatné CSS); bezpečné jen pro hodnoty z tohoto whitelistu.
@@ -78,6 +79,15 @@ tests/      nette/tester
   Minimální vanilla JS (delegovaný listener na `data-dialog-open`/`data-dialog-close`, žádná
   knihovna); po chybě validace se dialog znovu otevře přes `data-reopen`. Bez JS zůstává
   formulář odeslatelný (dialog je součást stránky).
+- **Heatmapa (Fáze 4)** — ruční CSS grid, žádná JS knihovna. „Řeč buňky" (6 stavů) je jediný
+  sdílený `{define heatmapCell}` v `app/Templates/_heatmap.latte`, importovaný jak velkou
+  heatmapou (Overview), tak mini-heatmapou detailu služby — nezduplikovat. Stavy rozlišitelné
+  i bez barvy: Paid=plná výplň barvou kategorie, Skipped=barva+šrafování+„–", Overdue=červený
+  tint+„⚠" (boří barvu kategorie), Planned=čárkovaný okraj, Gap=prázdná buňka, Inactive=jemná
+  neutrální. Každá buňka má `aria-label`/`title` „služba · měsíc rok · stav · částka". Pozor:
+  `{import '../_heatmap.latte'}` musí být **uvnitř** `{block content}` (s layoutem se top-level
+  kód šablony před renderem bloku nespustí → „undefined block"). Roční graf = inline SVG (no-JS,
+  `viewBox`, `fill-accent-500`), per-měsíc součty počítány z plateb v `YearSummary` (Σ == headline).
 
 ## Datový model (shrnutí, detail v docs/PLAN.md)
 `category`, `service` (opakující se šablona), `payment` (platba za konkrétní období), `_migration`.

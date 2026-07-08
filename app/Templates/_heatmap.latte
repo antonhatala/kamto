@@ -1,0 +1,61 @@
+{*
+ * Sdílená „řeč buňky" heatmapy (Fáze 4) — jeden zdroj pravdy pro 6 stavů, používaný jak velkou
+ * roční heatmapou (Overview, řádek = služba), tak mini-heatmapou v detailu služby (řádek = rok).
+ * Import: {import '../_heatmap.latte'} a pak {include heatmapCell, …}. Nezdvojovat markup buňky!
+ *
+ * Stavy jsou rozlišitelné I BEZ barvy (přístupnost, CLAUDE.md):
+ *   Paid     = plná výplň barvou kategorie (řádek „svítí")
+ *   Skipped  = barva kategorie tlumeně + šrafování + „–"
+ *   Overdue  = červený tint + „⚠" (záměrně boří barvu kategorie = alert)
+ *   Planned  = prázdno, čárkovaný okraj
+ *   Gap      = prázdná buňka bez okraje (nejklidnější — pauza)
+ *   Inactive = jemná neutrální výplň (roční služba mimo svůj měsíc splatnosti)
+ *}
+
+{*
+ * Jedna buňka. $color = hex kategorie (whitelist/fallback, přichází z HeatmapRow->category nebo
+ * z detailu služby); Overdue ji ignoruje. $serviceName jen do aria/title popisku.
+ *}
+{define heatmapCell, App\Payment\PaymentCell $cell, string $serviceName, string $color, array $monthNames}
+	{var $state = $cell->state}
+	{var $labels = ['Paid' => 'Zaplaceno', 'Skipped' => 'Přeskočeno', 'Overdue' => 'Po splatnosti', 'Planned' => 'Naplánováno', 'Gap' => 'Pauza', 'Inactive' => 'Neaktivní']}
+	{var $amountText = $cell->amount !== null ? App\Support\Money::formatCzk($cell->amount) : null}
+	{var $aria = $serviceName . ' · ' . $monthNames[$cell->periodMonth] . ' ' . $cell->periodYear . ' · ' . $labels[$state->name] . ($amountText !== null ? ' · ' . $amountText : '')}
+
+	<div role="gridcell" class="heatmap-cell" aria-label="{$aria}" title="{$aria}">
+		{if $state === App\Payment\CellState::Paid}
+			{* |noescape na hex: barva z CategoryPresenter::Palette whitelistu / neutrálního fallbacku. *}
+			<span class="hm-box" style="background-color: {$color|noescape}"></span>
+		{elseif $state === App\Payment\CellState::Skipped}
+			<span class="hm-box hm-hatch text-white/90 opacity-80" style="background-color: {$color|noescape}"><span aria-hidden="true">–</span></span>
+		{elseif $state === App\Payment\CellState::Overdue}
+			<span class="hm-box border border-red-300 bg-red-100 text-red-600" aria-hidden="true">⚠</span>
+		{elseif $state === App\Payment\CellState::Planned}
+			<span class="hm-box border border-dashed border-stone-300"></span>
+		{elseif $state === App\Payment\CellState::Inactive}
+			<span class="hm-box bg-stone-100"></span>
+		{else}
+			{* Gap — záměrně prázdná, nejklidnější buňka (pauza). *}
+			<span class="hm-box"></span>
+		{/if}
+	</div>
+{/define}
+
+{* Hlavička měsíců (čísla 1–12, title = celý český název) — sdílená oběma heatmapami. *}
+{define heatmapMonthHeaders, array $monthNames}
+	{for $m = 1; $m <= 12; $m++}
+		<div role="columnheader" class="heatmap-cell text-[0.65rem] font-medium text-stone-400" title="{$monthNames[$m]}">{$m}</div>
+	{/for}
+{/define}
+
+{* Legenda stavů — dekorativní (aria-hidden): stav každé buňky je už v jejím aria-label. *}
+{define heatmapLegend}
+	<ul class="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-xs text-stone-500" aria-hidden="true">
+		<li class="flex items-center gap-1.5"><span class="h-3.5 w-3.5 rounded-[4px] bg-stone-400"></span> Zaplaceno</li>
+		<li class="flex items-center gap-1.5"><span class="hm-hatch h-3.5 w-3.5 rounded-[4px] bg-stone-400"></span> Přeskočeno</li>
+		<li class="flex items-center gap-1.5"><span class="flex h-3.5 w-3.5 items-center justify-center rounded-[4px] border border-red-300 bg-red-100 text-[0.55rem] text-red-600">⚠</span> Po splatnosti</li>
+		<li class="flex items-center gap-1.5"><span class="h-3.5 w-3.5 rounded-[4px] border border-dashed border-stone-300"></span> Naplánováno</li>
+		<li class="flex items-center gap-1.5"><span class="h-3.5 w-3.5 rounded-[4px] bg-stone-100"></span> Neaktivní</li>
+		<li class="flex items-center gap-1.5"><span class="h-3.5 w-3.5 rounded-[4px] ring-1 ring-inset ring-stone-200"></span> Pauza</li>
+	</ul>
+{/define}

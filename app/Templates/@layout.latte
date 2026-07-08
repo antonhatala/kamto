@@ -11,24 +11,32 @@
 	{* Chrome přihlášené aplikace: hlavička s navigací + centralizované flash zprávy.
 	   Sign/in si obsah (včetně flashů uvnitř karty) vykresluje celý sám — viz else větev. *}
 	<header class="border-b border-stone-200 bg-white">
-		<div class="mx-auto flex max-w-3xl items-center gap-2 px-4 py-3 sm:px-6">
-			<a n:href="Home:default" class="flex items-center gap-2.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-200">
+		{* Mobile-first: logo + Odhlásit se na prvním řádku, navigace se zabalí na vlastní řádek
+		   pod ně (nav = w-full, order-3). Od sm: jeden řádek (logo · nav · … · Odhlásit se) přes
+		   order utility. Nikdy nepřeteče viewport → tělo stránky nescrolluje vodorovně. *}
+		<div class="mx-auto flex max-w-3xl flex-wrap items-center gap-x-2 gap-y-2 px-4 py-3 sm:flex-nowrap sm:px-6">
+			<a n:href="Home:default" class="order-1 flex items-center gap-2.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-200">
 				<span class="flex h-8 w-8 items-center justify-center rounded-xl bg-accent-600 text-sm font-semibold text-white" aria-hidden="true">K</span>
-				<span class="hidden text-base font-semibold tracking-tight text-stone-900 sm:inline">Kamto</span>
+				<span class="text-base font-semibold tracking-tight text-stone-900">Kamto</span>
 			</a>
-			<nav aria-label="Hlavní navigace" class="ml-1 flex items-center gap-1 sm:ml-4">
-				<a n:href="Home:default"
-					n:class="'rounded-lg px-3 py-1.5 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-accent-200', $presenter->isLinkCurrent('Home:*') ? 'bg-stone-100 text-stone-900' : 'text-stone-500 hover:bg-stone-50 hover:text-stone-900'"
-				>Přehled</a>
-				<a n:href="Service:default"
-					n:class="'rounded-lg px-3 py-1.5 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-accent-200', $presenter->isLinkCurrent('Service:*') ? 'bg-stone-100 text-stone-900' : 'text-stone-500 hover:bg-stone-50 hover:text-stone-900'"
-				>Služby</a>
-				<a n:href="Category:default"
-					n:class="'rounded-lg px-3 py-1.5 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-accent-200', $presenter->isLinkCurrent('Category:*') ? 'bg-stone-100 text-stone-900' : 'text-stone-500 hover:bg-stone-50 hover:text-stone-900'"
-				>Kategorie</a>
+			<nav aria-label="Hlavní navigace" class="order-3 w-full overflow-x-auto sm:order-2 sm:ml-2 sm:w-auto sm:overflow-visible">
+				<div class="flex w-max items-center gap-1 sm:w-auto">
+					<a n:href="Home:default"
+						n:class="'rounded-lg px-3 py-1.5 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-accent-200', $presenter->isLinkCurrent('Home:*') ? 'bg-stone-100 text-stone-900' : 'text-stone-500 hover:bg-stone-50 hover:text-stone-900'"
+					>Co zaplatit</a>
+					<a n:href="Overview:default"
+						n:class="'rounded-lg px-3 py-1.5 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-accent-200', $presenter->isLinkCurrent('Overview:*') ? 'bg-stone-100 text-stone-900' : 'text-stone-500 hover:bg-stone-50 hover:text-stone-900'"
+					>Přehledy</a>
+					<a n:href="Service:default"
+						n:class="'rounded-lg px-3 py-1.5 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-accent-200', $presenter->isLinkCurrent('Service:*') ? 'bg-stone-100 text-stone-900' : 'text-stone-500 hover:bg-stone-50 hover:text-stone-900'"
+					>Služby</a>
+					<a n:href="Category:default"
+						n:class="'rounded-lg px-3 py-1.5 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-accent-200', $presenter->isLinkCurrent('Category:*') ? 'bg-stone-100 text-stone-900' : 'text-stone-500 hover:bg-stone-50 hover:text-stone-900'"
+					>Kategorie</a>
+				</div>
 			</nav>
 			{* Odhlášení mění stav → POST formulář (same-origin CSRF ochrana), viz SignPresenter::actionOut(). *}
-			<form method="post" action="{link Sign:out}" class="ml-auto">
+			<form method="post" action="{link Sign:out}" class="order-2 ml-auto sm:order-3">
 				<button type="submit" class="btn-ghost">Odhlásit se</button>
 			</form>
 		</div>

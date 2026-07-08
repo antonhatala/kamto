@@ -12,6 +12,7 @@ use App\Payment\PaymentService;
 use App\Support\Clock;
 use App\Support\Money;
 use App\Support\Months;
+use App\Support\YearRange;
 use Nette\Application\Attributes\Requires;
 use Nette\Application\UI\Form;
 use Nette\Application\UI\Multiplier;
@@ -23,9 +24,6 @@ use Nette\Forms\Control;
  */
 final class HomePresenter extends SecuredPresenter
 {
-	private const int MinYear = 2000;
-	private const int MaxYear = 2100;
-
 	/** Zobrazené období — nastaví actionDefault() (běží před signály i renderem, viz Presenter::run()). */
 	private int $year;
 	private int $month;
@@ -212,7 +210,7 @@ final class HomePresenter extends SecuredPresenter
 
 	private function assertPeriodValid(int $year, int $month): void
 	{
-		if ($month < 1 || $month > 12 || $year < self::MinYear || $year > self::MaxYear) {
+		if ($month < 1 || $month > 12 || !YearRange::isValid($year)) {
 			$this->error('Neplatné období.');
 		}
 	}

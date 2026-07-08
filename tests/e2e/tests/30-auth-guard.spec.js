@@ -12,7 +12,7 @@ test.describe('Auth guard', () => {
 	});
 
 	test('unauthenticated direct access to protected presenters also redirects to login', async ({ page }) => {
-		for (const path of ['/home/default', '/service/', '/category/']) {
+		for (const path of ['/home/default', '/service/', '/category/', '/overview/', '/service/detail/1']) {
 			await page.goto(path);
 			expect(pathOf(page), `guard for ${path}`).toBe('/sign/in');
 		}
