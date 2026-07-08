@@ -32,6 +32,8 @@ docker-compose.override.yml
 
 # Testy
 /.phpunit.cache/
+# nette/tester zapisuje *.actual vedle *.expected při selhání Assert::matchFile — artefakt, ne fixture.
+tests/**/output/*.actual
 
 # E2E (Playwright, tests/e2e/) — own package.json, kept separate from the root Tailwind tooling.
 /tests/e2e/node_modules/

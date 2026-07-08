@@ -79,6 +79,28 @@ tests/      nette/tester
   Minimální vanilla JS (delegovaný listener na `data-dialog-open`/`data-dialog-close`, žádná
   knihovna); po chybě validace se dialog znovu otevře přes `data-reopen`. Bez JS zůstává
   formulář odeslatelný (dialog je součást stránky).
+- **Klientský JS (Fáze 5):** veškerý JS je v jednom externím `www/js/app.js` (`<script src defer>`
+  v `@layout`), **žádný inline `<script>`** v šablonách → produkce snese CSP `script-src 'self'`
+  (jediný inline script je Tracy debug bar, který v produkci běží vypnutý). Obsah app.js: dialog
+  úpravy částky, anti-dvojklik (po 1. submitu blokuje další; disable tlačítka až přes `setTimeout 0`,
+  ať name/value stisknutého tlačítka dorazí na server), registrace service workeru. Inline
+  `style="background-color:#hex"` u kategorií/heatmapy je OK (style-src, ne script-src).
+- **CSP (Fáze 5):** hlavička `Content-Security-Policy` je v `config/config.neon` (`http.headers`)
+  a je **produkční** — `script-src 'self'` (žádný inline JS), `style-src 'unsafe-inline'` (kvůli
+  inline hex u kategorií/heatmapy), `img-src data:`, `object-src 'none'`. V lokálním dev režimu ji
+  **vypíná** `config/config.local.neon` (`Content-Security-Policy: null`), protože Tracy debug bar
+  injektuje inline `<script>`+eval. config.local.neon je gitignored → na Bunny CSP reálně platí.
+- **PWA (Fáze 5):** `www/manifest.json` (standalone, bg `#fafaf9`, theme `#ffffff`, ikony 192/512
+  any + 192/512 maskable), `www/sw.js`, `www/offline.html`, ikony `www/icons/`. SVG předlohy
+  `icon.svg`/`icon-maskable.svg` jsou zdroj; PNG (`icon-192/512`, `icon-192/512-maskable`, `apple-touch-icon`)
+  rasterizuje devops jednorázově přes headless Chromium (Playwright image) a **commituje** je
+  (žádná runtime závislost). **SW (bezpečnostně citlivé):** statické
+  same-origin GET bez query (`/css/`,`/js/`,`/icons/`,`/manifest.json`) = cache-first; navigace
+  (HTML) = **network-only** + offline fallback (HTML se **nikdy** necachuje); non-GET / cross-origin
+  / cokoli s query stringem = **neintercepovat** (login/CSRF POST, `Set-Cookie`, CSV export `?year=`
+  projdou nedotčené). `CACHE_VERSION` bumpovat při změně assetů app shellu.
+- **A11y (Fáze 5):** skip-link „Přeskočit na obsah" (viditelný na focus, cíl `#main-content`),
+  `aria-current="page"` na aktivním nav odkazu, per-presenter `<title>`.
 - **Heatmapa (Fáze 4)** — ruční CSS grid, žádná JS knihovna. „Řeč buňky" (6 stavů) je jediný
   sdílený `{define heatmapCell}` v `app/Templates/_heatmap.latte`, importovaný jak velkou
   heatmapou (Overview), tak mini-heatmapou detailu služby — nezduplikovat. Stavy rozlišitelné

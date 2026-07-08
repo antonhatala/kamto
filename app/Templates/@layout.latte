@@ -4,10 +4,17 @@
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>{block title}Kamto{/block}</title>
+	<meta name="theme-color" content="#ffffff">
 	<link rel="stylesheet" href="/css/app.css">
+	<link rel="manifest" href="/manifest.json">
+	<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+	{* Veškerý klientský JS je v jednom externím souboru (žádný inline <script> → CSP script-src 'self'). *}
+	<script src="/js/app.js" defer></script>
 </head>
 <body class="min-h-dvh bg-stone-50 font-sans text-stone-900 antialiased">
 {if $user->isLoggedIn()}
+	{* Skip-link: skrytý, zviditelní se na focus (klávesnice), skočí na hlavní obsah. *}
+	<a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-white focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-stone-900 focus:shadow-md focus:ring-2 focus:ring-accent-300">Přeskočit na obsah</a>
 	{* Chrome přihlášené aplikace: hlavička s navigací + centralizované flash zprávy.
 	   Sign/in si obsah (včetně flashů uvnitř karty) vykresluje celý sám — viz else větev. *}
 	<header class="border-b border-stone-200 bg-white">
@@ -23,15 +30,19 @@
 				<div class="flex w-max items-center gap-1 sm:w-auto">
 					<a n:href="Home:default"
 						n:class="'rounded-lg px-3 py-1.5 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-accent-200', $presenter->isLinkCurrent('Home:*') ? 'bg-stone-100 text-stone-900' : 'text-stone-500 hover:bg-stone-50 hover:text-stone-900'"
+						n:attr="aria-current => $presenter->isLinkCurrent('Home:*') ? 'page' : null"
 					>Co zaplatit</a>
 					<a n:href="Overview:default"
 						n:class="'rounded-lg px-3 py-1.5 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-accent-200', $presenter->isLinkCurrent('Overview:*') ? 'bg-stone-100 text-stone-900' : 'text-stone-500 hover:bg-stone-50 hover:text-stone-900'"
+						n:attr="aria-current => $presenter->isLinkCurrent('Overview:*') ? 'page' : null"
 					>Přehledy</a>
 					<a n:href="Service:default"
 						n:class="'rounded-lg px-3 py-1.5 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-accent-200', $presenter->isLinkCurrent('Service:*') ? 'bg-stone-100 text-stone-900' : 'text-stone-500 hover:bg-stone-50 hover:text-stone-900'"
+						n:attr="aria-current => $presenter->isLinkCurrent('Service:*') ? 'page' : null"
 					>Služby</a>
 					<a n:href="Category:default"
 						n:class="'rounded-lg px-3 py-1.5 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-accent-200', $presenter->isLinkCurrent('Category:*') ? 'bg-stone-100 text-stone-900' : 'text-stone-500 hover:bg-stone-50 hover:text-stone-900'"
+						n:attr="aria-current => $presenter->isLinkCurrent('Category:*') ? 'page' : null"
 					>Kategorie</a>
 				</div>
 			</nav>
@@ -49,7 +60,7 @@
 		>{$flash->message}</p>
 	</div>
 
-	<main class="mx-auto w-full max-w-3xl px-4 py-6 sm:px-6 sm:py-8">
+	<main id="main-content" class="mx-auto w-full max-w-3xl px-4 py-6 sm:px-6 sm:py-8">
 		{include content}
 	</main>
 {else}

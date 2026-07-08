@@ -25,9 +25,18 @@ http:
 		# Don't advertise the framework in responses.
 		X-Powered-By: null
 		# Baseline hardening (bezpečnostní review Fáze 2) — brání MIME sniffingu a omezuje únik
-		# URL v Referer hlavičce mimo vlastní origin. CSP až Fáze 5/6 (řeší se se statickými assety/PWA).
+		# URL v Referer hlavičce mimo vlastní origin.
 		X-Content-Type-Options: nosniff
 		Referrer-Policy: same-origin
+		# CSP (Fáze 5) — pragmatická, po externalizaci klientského JS do /js/app.js:
+		#   script-src 'self'  → žádný inline <script> (to je ta výhra z externalizace).
+		#   style-src 'unsafe-inline' → NUTNÉ kvůli inline `style="background-color:#hex"` u
+		#     kategorií/heatmapy (hex je serverový whitelist, viz CategoryPresenter::Palette).
+		#   img-src data: → povolené data URI obrázky. object-src 'none', base-uri/form-action 'self'.
+		# ROZHODNUTÍ: CSP je PRODUKČNÍ. V dev režimu ji vypíná config.local.neon (Content-Security-Policy: null),
+		# protože Tracy debug bar injektuje inline <script>+eval a striktní CSP by ho rozbila. config.local.neon
+		# existuje jen lokálně (gitignored) → na Bunny se CSP reálně aplikuje. Viz CLAUDE.md „Bezpečnost".
+		Content-Security-Policy: "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'"
 
 services:
 	router: App\Router\RouterFactory::createRouter

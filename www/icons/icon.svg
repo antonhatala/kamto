@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Kamto app icon (purpose: any) — accent-600 (#a6501f) zaoblený čtverec + bílé „K",
+  kopie loga z hlavičky. Předloha pro PNG rasterizaci (devops): icon-192.png, icon-512.png,
+  apple-touch-icon.png (180). „K" je text v systémovém sans-serif fontu.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="Kamto">
+	<rect width="512" height="512" rx="112" ry="112" fill="#a6501f"/>
+	<text x="256" y="256" fill="#ffffff"
+		font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif"
+		font-size="320" font-weight="700"
+		text-anchor="middle" dominant-baseline="central">K</text>
+</svg>

@@ -17,11 +17,18 @@ module.exports = defineConfig({
 	reporter: [['list'], ['html', { open: 'never', outputFolder: 'playwright-report' }]],
 	outputDir: 'test-results',
 	use: {
-		// Inside the compose network the app is reachable at the nginx service's internal
-		// port 80 (see docker/nginx.conf `listen 80`), not the host-mapped 8080.
-		baseURL: process.env.BASE_URL ?? 'http://nginx:80',
+		// The e2e container shares nginx's network namespace (see docker-compose.yml `e2e`
+		// service) so this resolves to nginx's own port 80 as "localhost" — required for the
+		// Fáze 5 service-worker specs (see BASE_URL comment there for why).
+		baseURL: process.env.BASE_URL ?? 'http://localhost:80',
 		trace: 'retain-on-failure',
 		screenshot: 'only-on-failure',
+		// Suite-wide default: no service worker registration. Only 80-pwa-export.spec.js exercises
+		// the SW (offline fallback, cache-security check) and explicitly opts back in via
+		// `test.use({ serviceWorkers: 'allow' })` — every other spec gets a plain network fetch,
+		// so a caching service worker can never leak state between tests or make an unrelated
+		// spec flaky/order-dependent.
+		serviceWorkers: 'block',
 	},
 	projects: [
 		{

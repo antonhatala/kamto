@@ -64,8 +64,16 @@ services:
     volumes:
       - .:/app
     environment:
-      # nginx's internal port (see docker/nginx.conf `listen 80`) — not the host-mapped 8080.
-      BASE_URL: http://nginx:80
+      # Shares nginx's network namespace (see network_mode below), so nginx's port 80 is
+      # reachable as "localhost" from inside this container. Deliberately NOT "http://nginx:80"
+      # (the docker-DNS hostname): the Fáze 5 service-worker specs need `navigator.serviceWorker`,
+      # which Chromium only exposes in a "secure context" — https, or the browser's built-in
+      # loopback exception for "localhost"/127.0.0.1. A plain compose hostname like "nginx" gets
+      # neither, so `serviceWorker.register()` would silently be undefined for every test.
+      BASE_URL: http://localhost:80
+    # See BASE_URL comment above — join nginx's netns instead of the default bridge network so
+    # "localhost" resolves to nginx's own listening socket.
+    network_mode: "service:nginx"
     depends_on:
       - nginx
     command: sh -c "[ -d node_modules ] || npm ci; npx playwright test"

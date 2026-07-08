@@ -174,15 +174,6 @@
 		</ul>
 	</details>
 {/if}
-
-{* Minimální JS pro nativní <dialog> — otevření/zavření (Esc + focus řeší prohlížeč sám) a
-   znovuotevření dialogu, který se vrátil s chybou validace. Žádná knihovna. *}
-<script>
-	document.addEventListener('click', (e) => {
-		const opener = e.target.closest('[data-dialog-open]');
-		if (opener) { document.getElementById(opener.dataset.dialogOpen)?.showModal(); return; }
-		if (e.target.closest('[data-dialog-close]')) { e.target.closest('dialog')?.close(); }
-	});
-	for (const dialog of document.querySelectorAll('dialog[data-reopen]')) { dialog.showModal(); }
-</script>
+{* Chování dialogu úpravy částky (otevření/zavření/reopen-on-error) je v /js/app.js — žádný
+   inline <script> (CSP script-src 'self'). *}
 {/block}

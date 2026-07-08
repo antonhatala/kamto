@@ -4,20 +4,27 @@ declare(strict_types=1);
 
 namespace App\Presenters;
 
+use App\Export\CsvExporter;
 use App\Model\CategoryRepository;
 use App\Model\PaymentRepository;
 use App\Model\ServiceRepository;
+use App\Payment\PaymentExport;
 use App\Payment\YearHeatmap;
 use App\Payment\YearSummary;
 use App\Support\Clock;
 use App\Support\Months;
 use App\Support\YearRange;
+use Nette\Application\Responses\TextResponse;
 
 /**
  * Roční přehledy (Fáze 4) — souhrn a heatmapa služeb × měsíců za zvolený rok. Čistě read-only
  * (GET, žádné handle* signály) — samotná agregace je v App\Payment\YearSummary a
  * App\Payment\YearHeatmap, presenter jen načte data (vč. archivovaných služeb — historická
  * pravda, viz YearSummary) a naviguje mezi roky.
+ *
+ * actionExport() (Fáze 5) — CSV export historie plateb za rok. Business logika (řádky,
+ * escapování) je mimo presenter: App\Payment\PaymentExport sestaví řádky, App\Export\CsvExporter
+ * je serializuje na CSV string; presenter jen načte data a pošle hotový string jako soubor.
  */
 final class OverviewPresenter extends SecuredPresenter
 {
@@ -34,12 +41,18 @@ final class OverviewPresenter extends SecuredPresenter
 
 	public function actionDefault(?int $year = null): void
 	{
+		$this->year = $this->resolveYear($year);
+	}
+
+	/** Rok z parametru (default = aktuální dle Clock), validovaný proti YearRange (jinak 404). */
+	private function resolveYear(?int $year): int
+	{
 		$resolvedYear = $year ?? (int) $this->clock->now()->format('Y');
 		if (!YearRange::isValid($resolvedYear)) {
 			$this->error('Neplatný rok.');
 		}
 
-		$this->year = $resolvedYear;
+		return $resolvedYear;
 	}
 
 	public function renderDefault(): void
@@ -57,5 +70,33 @@ final class OverviewPresenter extends SecuredPresenter
 		$this->template->monthNames = Months::Names;
 		$this->template->summary = YearSummary::build($this->year, $today, $services, $payments, $categories);
 		$this->template->heatmap = YearHeatmap::build($this->year, $today, $services, $payments, $categories);
+	}
+
+	/**
+	 * CSV export historie plateb za rok (Fáze 5) — stejná validace roku jako actionDefault().
+	 * Read-only GET, žádný render (přímo posílá soubor a terminuje) — proto vlastní validace
+	 * místo sdílení s actionDefault() přes společné $this->year (export nemusí navigovat
+	 * mezi roky ani nic renderovat).
+	 */
+	public function actionExport(?int $year = null): void
+	{
+		$resolvedYear = $this->resolveYear($year);
+
+		// Stejná data jako actionDefault(): findAll(true) vč. archivu — zaplacená platba
+		// archivované služby patří do historie roku stejně jako do "letos zaplaceno" v přehledu.
+		$services = $this->serviceRepository->findAll(true);
+		$payments = $this->paymentRepository->findByYear($resolvedYear);
+		$categories = $this->categoryRepository->findAll();
+
+		$rows = PaymentExport::buildRows($this->clock->now(), $services, $payments, $categories);
+		$csv = CsvExporter::export(PaymentExport::Header, $rows);
+
+		// getHttpResponse() vrací rozhraní Http\IResponse — sendAsFile() je jen na konkrétní
+		// třídě Response, proto Content-Disposition přímo přes setHeader() (i to je v IResponse).
+		$httpResponse = $this->getHttpResponse();
+		$httpResponse->setContentType('text/csv', 'utf-8');
+		$httpResponse->setHeader('Content-Disposition', sprintf('attachment; filename="kamto-platby-%d.csv"', $resolvedYear));
+
+		$this->sendResponse(new TextResponse($csv));
 	}
 }

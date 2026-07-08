@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Kamto maskable icon (purpose: maskable) — full-bleed accent-600 čtverec (edge-to-edge, aby OS
+  maska vždy ukázala barvu) + menší bílé „K" uvnitř ~20% safe-zone. Předloha pro icon-512-maskable.png
+  (a případně icon-192-maskable.png), rasterizuje devops.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="Kamto">
+	<rect width="512" height="512" fill="#a6501f"/>
+	<text x="256" y="256" fill="#ffffff"
+		font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif"
+		font-size="210" font-weight="700"
+		text-anchor="middle" dominant-baseline="central">K</text>
+</svg>
