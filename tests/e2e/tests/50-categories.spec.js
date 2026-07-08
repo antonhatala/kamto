@@ -31,7 +31,9 @@ function colorDot(row) {
 
 test.describe('Categories (Phase 2)', () => {
 	test.beforeEach(async ({ page }) => {
+		// login() lands on the dashboard (/); these tests operate on the service/category lists.
 		await login(page);
+		await page.goto('/service/');
 	});
 
 	test('creating a category with a chosen swatch shows it in the list with its color', async ({ page }) => {

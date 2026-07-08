@@ -33,9 +33,18 @@ Orientační den (u roční i měsíc), kdy má být služba zaplacena. U kratš
 _Avoid_: deadline, termín
 
 **Stav platby** (odvozený, není sloupec):
-*zaplaceno* (`paid_date` není NULL) · *po splatnosti* (`paid_date` NULL a `due_date` < dnes) ·
-*naplánováno* (jinak). Ukládá se jen `paid_date`; stav se vždy počítá.
+Žebříček (od nejvyšší priority): *zaplaceno* (`paid_date` není NULL) · *přeskočeno*
+(`paid_date` NULL a `skipped_at` není NULL) · *po splatnosti* (obě NULL a `due_date` < dnes,
+striktně — v den splatnosti je platba ještě naplánovaná) · *naplánováno* (jinak). Ukládá se
+jen `paid_date`/`skipped_at`; stav se vždy počítá.
 _Avoid_: status sloupec, flag
+
+**Přeskočeno** (`skipped_at`):
+Reverzibilní pauza jedné platby za dané období — záměrně se neplatí, ale záznam zůstává
+(na rozdíl od „žádný řádek", což znamená ještě neřešeno/budoucí období). `paid_date` je
+NULL a `skipped_at` NOT NULL. Zrušitelné („Zrušit přeskočení") zpět na naplánováno/po
+splatnosti podle `due_date`.
+_Avoid_: zrušeno, smazáno, ignorováno
 
 **Archivace** (`is_archived`, `archived_at`):
 Reverzibilní ukrytí služby z aktivního seznamu; historie plateb zůstává. Opak = reaktivace

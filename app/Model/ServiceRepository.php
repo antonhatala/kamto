@@ -23,6 +23,18 @@ final class ServiceRepository
 		return $this->db->fetch('SELECT * FROM service WHERE id = ?', [$id]);
 	}
 
+	/**
+	 * Aktivní (nearchivovaná) služba, nebo null. Platební akce se smí týkat jen aktivní
+	 * služby — archivovaná do dashboardu nevstupuje a nesmí přijmout platební signál
+	 * (crafted POST musí skončit 404, viz HomePresenter::assertActiveService a PaymentService::upsert).
+	 *
+	 * @return array<string, mixed>|null
+	 */
+	public function findActive(int $id): ?array
+	{
+		return $this->db->fetch('SELECT * FROM service WHERE id = ? AND is_archived = 0', [$id]);
+	}
+
 	/** @return list<array<string, mixed>> */
 	public function findAll(bool $includeArchived = false): array
 	{

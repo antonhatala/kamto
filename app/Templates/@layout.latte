@@ -17,6 +17,9 @@
 				<span class="hidden text-base font-semibold tracking-tight text-stone-900 sm:inline">Kamto</span>
 			</a>
 			<nav aria-label="Hlavní navigace" class="ml-1 flex items-center gap-1 sm:ml-4">
+				<a n:href="Home:default"
+					n:class="'rounded-lg px-3 py-1.5 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-accent-200', $presenter->isLinkCurrent('Home:*') ? 'bg-stone-100 text-stone-900' : 'text-stone-500 hover:bg-stone-50 hover:text-stone-900'"
+				>Přehled</a>
 				<a n:href="Service:default"
 					n:class="'rounded-lg px-3 py-1.5 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-accent-200', $presenter->isLinkCurrent('Service:*') ? 'bg-stone-100 text-stone-900' : 'text-stone-500 hover:bg-stone-50 hover:text-stone-900'"
 				>Služby</a>

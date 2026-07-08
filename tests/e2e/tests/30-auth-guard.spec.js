@@ -20,7 +20,7 @@ test.describe('Auth guard', () => {
 
 	test('logging out ends the session — / redirects to login again', async ({ page }) => {
 		await login(page);
-		await expect(page).toHaveTitle('Služby – Kamto');
+		await expect(page).toHaveTitle('Přehled – Kamto');
 
 		await logout(page);
 		await expect(page.getByText('Byli jste odhlášeni.')).toBeVisible();

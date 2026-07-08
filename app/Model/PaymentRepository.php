@@ -8,7 +8,7 @@ use App\Database\Db;
 
 /**
  * Raw SQL repozitář nad tabulkou `payment` (platba za konkrétní období) — žádná business
- * logika (markPaid, výpočty splatnosti = Fáze 3).
+ * logika (upsert/přechody stavů řeší App\Payment\PaymentService, Fáze 3).
  */
 final class PaymentRepository
 {
@@ -66,6 +66,7 @@ final class PaymentRepository
 	 *     period_month: int,
 	 *     due_date: string,
 	 *     paid_date?: string|null,
+	 *     skipped_at?: string|null,
 	 *     amount: int,
 	 *     note?: string|null,
 	 * } $data
@@ -74,14 +75,15 @@ final class PaymentRepository
 	{
 		$this->db->execute(
 			'INSERT INTO payment
-				(service_id, period_year, period_month, due_date, paid_date, amount, note, created_at)
-				VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+				(service_id, period_year, period_month, due_date, paid_date, skipped_at, amount, note, created_at)
+				VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
 			[
 				$data['service_id'],
 				$data['period_year'],
 				$data['period_month'],
 				$data['due_date'],
 				$data['paid_date'] ?? null,
+				$data['skipped_at'] ?? null,
 				$data['amount'],
 				$data['note'] ?? null,
 				// created_at si repozitář generuje sám — sjednoceno se ServiceRepository::insert().
@@ -90,6 +92,45 @@ final class PaymentRepository
 		);
 
 		return $this->db->lastInsertId();
+	}
+
+	/**
+	 * Jako insert(), ale při kolizi na UNIQUE(service_id, period_year, period_month) řádek
+	 * nechá být (ON CONFLICT DO NOTHING) — idempotentní lazy vznik i při souběhu dvou akcí
+	 * nad stejným čerstvým obdobím (žádná neodchycená UNIQUE violation → 500). Existující
+	 * řádek se nepřepíše (chrání snapshot částky/due_date). Nevrací id — volající si řádek
+	 * dohledá přes findByServiceAndPeriod (viz App\Payment\PaymentService::upsert).
+	 *
+	 * @param array{
+	 *     service_id: int,
+	 *     period_year: int,
+	 *     period_month: int,
+	 *     due_date: string,
+	 *     paid_date?: string|null,
+	 *     skipped_at?: string|null,
+	 *     amount: int,
+	 *     note?: string|null,
+	 * } $data
+	 */
+	public function insertIgnore(array $data): void
+	{
+		$this->db->execute(
+			'INSERT INTO payment
+				(service_id, period_year, period_month, due_date, paid_date, skipped_at, amount, note, created_at)
+				VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+				ON CONFLICT (service_id, period_year, period_month) DO NOTHING',
+			[
+				$data['service_id'],
+				$data['period_year'],
+				$data['period_month'],
+				$data['due_date'],
+				$data['paid_date'] ?? null,
+				$data['skipped_at'] ?? null,
+				$data['amount'],
+				$data['note'] ?? null,
+				date(DATE_ATOM),
+			],
+		);
 	}
 
 	/**
@@ -111,5 +152,23 @@ final class PaymentRepository
 	public function delete(int $id): void
 	{
 		$this->db->execute('DELETE FROM payment WHERE id = ?', [$id]);
+	}
+
+	/** Nastaví/zruší zaplacení (NULL = vrátit mezi nezaplacené) — viz App\Payment\PaymentService::markPaid/unmarkPaid. */
+	public function setPaidDate(int $id, ?string $paidDate): void
+	{
+		$this->db->execute('UPDATE payment SET paid_date = ? WHERE id = ?', [$paidDate, $id]);
+	}
+
+	/** Nastaví/zruší přeskočení (NULL = zrušit) — viz App\Payment\PaymentService::skip/unskip. */
+	public function setSkipped(int $id, ?string $skippedAt): void
+	{
+		$this->db->execute('UPDATE payment SET skipped_at = ? WHERE id = ?', [$skippedAt, $id]);
+	}
+
+	/** Ruční úprava částky pro dané období (odchylka od snapshotu service.amount) + volitelná poznámka. */
+	public function setAmount(int $id, int $amount, ?string $note): void
+	{
+		$this->db->execute('UPDATE payment SET amount = ?, note = ? WHERE id = ?', [$amount, $note, $id]);
 	}
 }

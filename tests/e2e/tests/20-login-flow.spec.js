@@ -45,13 +45,14 @@ test.describe('Sign-in flow', () => {
 		expect(pathOf(page)).toBe('/sign/in');
 	});
 
-	test('correct password logs in and lands on the service list', async ({ page }) => {
+	test('correct password logs in and lands on the dashboard', async ({ page }) => {
 		await gotoLogin(page);
 		await submitLogin(page, 'kamto');
 
-		// Home:default forwards straight to Service:default since Phase 2.
-		await expect(page).toHaveURL(/\/service\/(\?.*)?$/);
-		await expect(page).toHaveTitle('Služby – Kamto');
+		// Since Phase 3, Home:default renders the "Co zaplatit" dashboard at `/`.
+		await expect(page).toHaveURL(/\/(\?.*)?$/);
+		await expect(page).toHaveTitle('Přehled – Kamto');
+		await expect(page.getByRole('heading', { name: 'Co zaplatit' })).toBeVisible();
 		// Logout is a POST form in the header now, so its control is a button, not a link.
 		await expect(page.getByRole('banner').getByRole('button', { name: 'Odhlásit se' })).toBeVisible();
 	});

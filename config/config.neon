@@ -39,3 +39,5 @@ services:
 	- App\Model\CategoryRepository
 	- App\Model\ServiceRepository
 	- App\Model\PaymentRepository
+	- App\Support\SystemClock
+	- App\Payment\PaymentService

@@ -22,7 +22,9 @@ function serviceRow(page, name) {
 
 test.describe('Services (Phase 2)', () => {
 	test.beforeEach(async ({ page }) => {
+		// login() lands on the dashboard (/); these tests operate on the service list.
 		await login(page);
+		await page.goto('/service/');
 	});
 
 	test('empty database shows the onboarding CTA which leads to the add form', async ({ page }) => {

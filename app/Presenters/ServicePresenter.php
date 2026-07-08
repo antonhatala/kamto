@@ -8,6 +8,7 @@ use App\Forms\FormFactory;
 use App\Model\CategoryRepository;
 use App\Model\ServiceRepository;
 use App\Support\Money;
+use App\Support\Months;
 use Nette\Application\Attributes\Requires;
 use Nette\Application\UI\Form;
 use Nette\Forms\Control;
@@ -15,11 +16,6 @@ use Nette\Forms\Control;
 /** Seznam/CRUD služeb (šablon plateb) — archivace/reaktivace a ruční řazení, Fáze 2. */
 final class ServicePresenter extends SecuredPresenter
 {
-	private const array MonthNames = [
-		1 => 'Leden', 2 => 'Únor', 3 => 'Březen', 4 => 'Duben', 5 => 'Květen', 6 => 'Červen',
-		7 => 'Červenec', 8 => 'Srpen', 9 => 'Září', 10 => 'Říjen', 11 => 'Listopad', 12 => 'Prosinec',
-	];
-
 	/** @var array<string, mixed>|null Editovaná služba (null v `add`), viz actionEdit(). */
 	private ?array $editedService = null;
 
@@ -131,7 +127,7 @@ final class ServicePresenter extends SecuredPresenter
 
 		// due_month je povinný jen pro roční periodu — vynuceno v serviceFormSucceeded(),
 		// klient nemusí mít JS, aby pole schoval/zpřístupnil podle zvolené periody.
-		$form->addSelect('due_month', 'Měsíc splatnosti', self::MonthNames)
+		$form->addSelect('due_month', 'Měsíc splatnosti', Months::Names)
 			->setPrompt('Vyberte měsíc');
 
 		$categoryOptions = ['' => 'Bez kategorie'];

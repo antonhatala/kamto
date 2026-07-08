@@ -71,6 +71,13 @@ tests/      nette/tester
 - **Barvy kategorií:** serverový whitelist `CategoryPresenter::Palette` (8 tlumených odstínů
   ladících s terakotou). Pozor: dynamický hex ve `style` atributu vyžaduje `|noescape`
   (Latte escapuje `#` na `\#` → neplatné CSS); bezpečné jen pro hodnoty z tohoto whitelistu.
+- **Stav = nikdy jen barva:** stav řádku (po splatnosti / zaplaceno / přeskočeno) je vždy
+  i textový/ikonový, ne pouze barevný (přístupnost). „Po splatnosti" = `red-*` tokeny střídmě
+  (tinted řádek `bg-red-50/60` + `border-red-200`), nulový zbytek k zaplacení = `emerald-600`.
+- **Dialog úpravy částky:** nativní `<dialog>` + `showModal()` (Esc a focus-trap řeší prohlížeč).
+  Minimální vanilla JS (delegovaný listener na `data-dialog-open`/`data-dialog-close`, žádná
+  knihovna); po chybě validace se dialog znovu otevře přes `data-reopen`. Bez JS zůstává
+  formulář odeslatelný (dialog je součást stránky).
 
 ## Datový model (shrnutí, detail v docs/PLAN.md)
 `category`, `service` (opakující se šablona), `payment` (platba za konkrétní období), `_migration`.

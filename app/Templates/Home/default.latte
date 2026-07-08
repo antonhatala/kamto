@@ -1,0 +1,188 @@
+{block title}Přehled – Kamto{/block}
+
+{*
+ * Jeden řádek dashboardu — společné pro všechny 4 sekce (Po splatnosti/K zaplacení/
+ * Zaplaceno/Přeskočeno), ať se markup nekopíruje 4×. $sectionKey říká, které akční
+ * tlačítko(a) nabídnout a jak řádek vizuálně ztlumit.
+ *}
+{define itemRow, $item, $sectionKey, $year, $month}
+	{var $service = $item->service}
+	{var $muted = $sectionKey === 'paid' || $sectionKey === 'skipped'}
+	{var $overdue = $sectionKey === 'overdue'}
+	<li n:class="
+		'flex flex-col gap-3 rounded-2xl border p-4 shadow-sm shadow-stone-200/60 sm:flex-row sm:items-center',
+		$overdue ? 'border-red-200 bg-red-50/60' : 'border-stone-200',
+		$muted ? 'bg-stone-50' : ($overdue ? '' : 'bg-white')
+	">
+		{* Ikona služby — emoji, nebo iniciála jako fallback (stejný vzor jako seznam služeb). *}
+		{if $service['icon']}
+			<span n:class="'flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-lg', $overdue ? 'bg-red-100' : 'bg-stone-100', $muted ? 'opacity-60' : ''" aria-hidden="true">{$service['icon']}</span>
+		{else}
+			<span n:class="'flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-sm font-semibold text-stone-500', $overdue ? 'bg-red-100' : 'bg-stone-100', $muted ? 'opacity-60' : ''" aria-hidden="true">{mb_strtoupper(mb_substr($service['name'], 0, 1))}</span>
+		{/if}
+
+		<div class="min-w-0 flex-1">
+			<p n:class="'truncate font-medium', $muted ? 'text-stone-500' : 'text-stone-900'">{$service['name']}</p>
+			<p class="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs">
+				{* Stav je čitelný i bez barvy — vždy textový (název ze stavu, enum je zdroj) a
+				   u výjimečných stavů ikonka. *}
+				{if $overdue}
+					<span class="inline-flex items-center gap-1 font-medium text-red-700"><span aria-hidden="true">⚠</span> {$item->status->label()}</span>
+					<span class="text-red-700/70">· splatnost {$item->dueDate|date}</span>
+				{elseif $sectionKey === 'paid'}
+					<span class="inline-flex items-center gap-1 font-medium text-stone-500"><span aria-hidden="true">✓</span> {$item->status->label()}</span>
+				{elseif $sectionKey === 'skipped'}
+					<span class="inline-flex items-center gap-1 font-medium text-stone-500"><span aria-hidden="true">–</span> {$item->status->label()}</span>
+				{else}
+					<span class="text-stone-500">Splatnost {$item->dueDate|date}</span>
+				{/if}
+			</p>
+		</div>
+
+		<span n:class="'shrink-0 text-right font-semibold tabular-nums sm:w-28', $muted ? 'text-stone-500' : 'text-stone-900'">{$item->amount|czk}</span>
+
+		<div class="flex shrink-0 flex-wrap items-center gap-2">
+			{if $sectionKey === 'paid'}
+				<form method="post" action="{link unpay!, $service['id'], year: $year, month: $month}">
+					<button type="submit" class="btn-ghost" aria-label="Vrátit {$service['name']} mezi nezaplacené">Vrátit</button>
+				</form>
+			{elseif $sectionKey === 'skipped'}
+				<form method="post" action="{link unskip!, $service['id'], year: $year, month: $month}">
+					<button type="submit" class="btn-ghost" aria-label="Zrušit přeskočení u {$service['name']}">Zrušit přeskočení</button>
+				</form>
+			{else}
+				<form method="post" action="{link pay!, $service['id'], year: $year, month: $month}">
+					<button type="submit" class="btn-primary" aria-label="Označit {$service['name']} jako zaplacené">Zaplaceno ✓</button>
+				</form>
+				<button type="button" class="btn-ghost" aria-label="Upravit částku u {$service['name']}"
+					data-dialog-open="amount-dialog-{$service['id']}">Upravit</button>
+				<form method="post" action="{link skip!, $service['id'], year: $year, month: $month}">
+					<button type="submit" class="btn-ghost" aria-label="Přeskočit {$service['name']} pro toto období">Přeskočit</button>
+				</form>
+
+				{* Nativní <dialog> (modální) — Esc zavře a focus se drží uvnitř bez JS; otevření
+				   vyžaduje showModal() (pár znaků JS, viz malý handler na konci šablony). Při
+				   chybě validace se dialog po reloadu znovu otevře (data-reopen). *}
+				<dialog id="amount-dialog-{$service['id']}"
+					n:attr="data-reopen: $control['amountForm-' . $service['id']]->hasErrors() ? true : null"
+					class="w-[calc(100vw-2rem)] max-w-sm rounded-card border border-stone-200 bg-white p-0 shadow-xl backdrop:bg-stone-900/40">
+					<form n:name="'amountForm-' . $service['id']" class="space-y-4 p-5">
+						<div class="flex items-start justify-between gap-4">
+							<h2 class="text-base font-semibold text-stone-900">Upravit částku</h2>
+							<button type="button" class="btn-icon shrink-0" aria-label="Zavřít" data-dialog-close>✕</button>
+						</div>
+						<p class="-mt-2 text-sm text-stone-500">{$service['name']} · {$monthName} {$year}</p>
+
+						<div n:if="$form->getOwnErrors()" class="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">
+							<p n:foreach="$form->getOwnErrors() as $error">{$error}</p>
+						</div>
+
+						<div>
+							<label n:name="amount" class="field-label">Částka (Kč)</label>
+							<input n:name="amount" class="input" inputmode="decimal">
+							<p class="field-error" n:ifcontent>{inputError amount}</p>
+						</div>
+						<div>
+							<label n:name="note" class="field-label">Poznámka</label>
+							<textarea n:name="note" class="input" rows="2"></textarea>
+							<p class="field-error" n:ifcontent>{inputError note}</p>
+						</div>
+						<div class="flex items-center gap-3 pt-1">
+							<button n:name="send" class="btn-primary">Uložit</button>
+							<button type="button" class="btn-ghost" data-dialog-close>Zrušit</button>
+						</div>
+					</form>
+				</dialog>
+			{/if}
+		</div>
+	</li>
+{/define}
+
+{block content}
+{var $isEmpty = !$sections['overdue'] && !$sections['planned'] && !$sections['paid'] && !$sections['skipped']}
+
+<div class="sticky top-0 z-10 flex flex-wrap items-center justify-between gap-3 bg-stone-50 py-3">
+	<h1 class="text-lg font-semibold tracking-tight text-stone-900 sm:text-xl">Co zaplatit</h1>
+	<nav class="flex items-center gap-1" aria-label="Volba období">
+		<div class="flex items-center gap-0.5 rounded-xl border border-stone-200 bg-white p-0.5 shadow-sm shadow-stone-200/60">
+			<a n:href="default, year: $prevYear, month: $prevMonth" class="btn-icon" aria-label="Předchozí měsíc ({$prevMonthName} {$prevYear})">◀</a>
+			<span class="min-w-[9.5rem] px-2 text-center text-sm font-medium text-stone-900">{$monthName} {$year}</span>
+			<a n:href="default, year: $nextYear, month: $nextMonth" class="btn-icon" aria-label="Následující měsíc ({$nextMonthName} {$nextYear})">▶</a>
+		</div>
+		<a n:href="default" class="btn-ghost">Dnes</a>
+	</nav>
+</div>
+
+{* Souhrn — „Zbývá zaplatit" prominentně (velké číslo), „Zaplaceno" tlumeně vedle. *}
+<section class="mt-2 flex flex-wrap items-end justify-between gap-x-8 gap-y-3 rounded-card border border-stone-200 bg-white p-5 shadow-sm shadow-stone-200/60">
+	<div>
+		<p class="text-xs font-medium uppercase tracking-wide text-stone-500">Zbývá zaplatit</p>
+		<p n:class="'mt-1 text-3xl font-semibold tabular-nums tracking-tight', $remainingTotal > 0 ? 'text-stone-900' : 'text-emerald-600'">{$remainingTotal|czk}</p>
+	</div>
+	<div class="text-right">
+		<p class="text-xs font-medium uppercase tracking-wide text-stone-400">Zaplaceno</p>
+		<p class="mt-1 text-lg font-medium tabular-nums text-stone-500">{$paidTotal|czk}</p>
+	</div>
+</section>
+
+{if $isEmpty}
+	<div class="mt-6 rounded-card border border-dashed border-stone-300 bg-white/50 px-6 py-12 text-center">
+		<span class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-2xl" aria-hidden="true">🎉</span>
+		<p class="mt-4 font-medium text-stone-900">Tento měsíc nemáte nic k zaplacení</p>
+		<p class="mt-1 text-sm text-stone-500">
+			Až přidáte službu, objeví se tu.
+			<a n:href="Service:default" class="font-medium text-accent-700 underline underline-offset-2 hover:text-accent-600">Spravovat služby</a>
+		</p>
+	</div>
+{else}
+	<section n:if="$sections['overdue']" class="mt-6">
+		<h2 class="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-red-700">
+			Po splatnosti
+			<span class="rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium tabular-nums text-red-700">{count($sections['overdue'])}</span>
+		</h2>
+		<ul class="mt-3 space-y-2.5">
+			{foreach $sections['overdue'] as $item}{include itemRow, item: $item, sectionKey: 'overdue', year: $year, month: $month}{/foreach}
+		</ul>
+	</section>
+
+	<section n:if="$sections['planned']" class="mt-6">
+		<h2 class="text-sm font-semibold uppercase tracking-wide text-stone-500">K zaplacení</h2>
+		<ul class="mt-3 space-y-2.5">
+			{foreach $sections['planned'] as $item}{include itemRow, item: $item, sectionKey: 'planned', year: $year, month: $month}{/foreach}
+		</ul>
+	</section>
+
+	<details n:if="$sections['paid']" class="group mt-6" open>
+		<summary class="inline-flex cursor-pointer select-none items-center gap-1.5 rounded-lg py-1 text-sm font-semibold uppercase tracking-wide text-stone-500 transition hover:text-stone-700 focus:outline-none focus:ring-2 focus:ring-accent-200">
+			<span class="text-xs transition-transform group-open:rotate-90" aria-hidden="true">▶</span>
+			Zaplaceno
+			<span class="rounded-full bg-stone-100 px-2 py-0.5 text-xs font-medium tabular-nums text-stone-500">{count($sections['paid'])}</span>
+		</summary>
+		<ul class="mt-3 space-y-2.5">
+			{foreach $sections['paid'] as $item}{include itemRow, item: $item, sectionKey: 'paid', year: $year, month: $month}{/foreach}
+		</ul>
+	</details>
+
+	<details n:if="$sections['skipped']" class="group mt-6">
+		<summary class="inline-flex cursor-pointer select-none items-center gap-1.5 rounded-lg py-1 text-sm font-semibold uppercase tracking-wide text-stone-500 transition hover:text-stone-700 focus:outline-none focus:ring-2 focus:ring-accent-200">
+			<span class="text-xs transition-transform group-open:rotate-90" aria-hidden="true">▶</span>
+			Přeskočeno
+			<span class="rounded-full bg-stone-100 px-2 py-0.5 text-xs font-medium tabular-nums text-stone-500">{count($sections['skipped'])}</span>
+		</summary>
+		<ul class="mt-3 space-y-2.5">
+			{foreach $sections['skipped'] as $item}{include itemRow, item: $item, sectionKey: 'skipped', year: $year, month: $month}{/foreach}
+		</ul>
+	</details>
+{/if}
+
+{* Minimální JS pro nativní <dialog> — otevření/zavření (Esc + focus řeší prohlížeč sám) a
+   znovuotevření dialogu, který se vrátil s chybou validace. Žádná knihovna. *}
+<script>
+	document.addEventListener('click', (e) => {
+		const opener = e.target.closest('[data-dialog-open]');
+		if (opener) { document.getElementById(opener.dataset.dialogOpen)?.showModal(); return; }
+		if (e.target.closest('[data-dialog-close]')) { e.target.closest('dialog')?.close(); }
+	});
+	for (const dialog of document.querySelectorAll('dialog[data-reopen]')) { dialog.showModal(); }
+</script>
+{/block}

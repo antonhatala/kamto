@@ -15,12 +15,13 @@ async function submitLogin(page, password) {
 
 /**
  * Logs in with the given password (the local dev password by default) and waits for the
- * landing page — Home:default immediately forwards to the service list (/service/).
+ * landing page — since Phase 3, Home:default renders the "Co zaplatit" dashboard at `/`.
  */
 async function login(page, password = 'kamto') {
 	await gotoLogin(page);
 	await submitLogin(page, password);
-	await expect(page).toHaveURL(/\/service\/(\?.*)?$/);
+	await expect(page).toHaveURL(/\/(\?.*)?$/);
+	await expect(page.getByRole('heading', { name: 'Co zaplatit' })).toBeVisible();
 }
 
 /** Logs out via the header button (logout is a POST form, not a link) and waits for the login page. */
