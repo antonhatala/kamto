@@ -3,15 +3,16 @@ parameters:
 	# on production supplied via the APP_PASSWORD_HASH environment variable.
 	appPasswordHash: %env.APP_PASSWORD_HASH%
 
-	# DB brána (Fáze 1) — lokální default je PdoSqliteDb nad var/kamto.db (%rootDir% =
-	# projekt root, viz Nette\Bootstrap\Configurator). `url`/`token` je tvar připravený pro
-	# LibsqlDb (nativní libSQL extension) — reálně zapojené (driver: libsql +
-	# %env.DATABASE_URL%/%env.DATABASE_TOKEN%) až ve Fázi 6 (Bunny deploy).
+	# DB brána (Fáze 1) — řízená přes env (Bootstrap dodává defaulty, viz app/Bootstrap.php).
+	# Lokálně bez proměnných → DATABASE_DRIVER='pdo-sqlite' → PdoSqliteDb nad var/kamto.db
+	# (%rootDir% = projekt root, viz Nette\Bootstrap\Configurator). Na Bunny (Fáze 6) stačí
+	# nastavit DATABASE_DRIVER=libsql + DATABASE_URL + DATABASE_TOKEN — stejný image, jen jiné env,
+	# DbFactory přepne na LibsqlDb (nativní libSQL extension). Žádná změna kódu ani rebuildu.
 	database:
-		driver: pdo-sqlite
+		driver: %env.DATABASE_DRIVER%
 		path: %rootDir%/var/kamto.db
-		url: ''
-		token: ''
+		url: %env.DATABASE_URL%
+		token: %env.DATABASE_TOKEN%
 
 application:
 	mapping: App\Presenters\*Presenter

@@ -1,11 +1,10 @@
+# Lokální tajnosti (gitignored + dockerignored). Zkopíruj do config.local.neon a dej sem
+# svůj hash hesla. Vývojová override (vypnutí CSP pro Tracy) UŽ TU NENÍ — přesunuta do
+# verzovaného config/config.dev.neon, které Bootstrap načte jen v debug módu. Tenhle soubor
+# proto drží čistě jen tajnosti.
 parameters:
-	# Copy this file to config.local.neon and put your own password hash here.
-	# Generate one with (v Dockeru, bez PHP na hostu):
-	#   docker compose run --rm php php -r "echo password_hash('your-password', PASSWORD_DEFAULT), PHP_EOL;"
-	appPasswordHash: '$2y$12$hiVouMjbTynUn8yaOo79quGx2s2zUETxIHIF1lj5uujKLarWzK8SC'
-
-http:
-	headers:
-		# Vypni produkční CSP (config.neon) v lokálním dev režimu — Tracy debug bar injektuje
-		# inline <script>+eval, které by striktní CSP zablokovala. null = hlavička se neposílá.
-		Content-Security-Policy: null
+	# Vygeneruj VLASTNÍ hash (v Dockeru, bez PHP na hostu):
+	#   docker compose run --rm php php -r "echo password_hash('tvé-heslo', PASSWORD_DEFAULT), PHP_EOL;"
+	# Hodnota níže je jen placeholder — NENÍ platný bcrypt hash, nahraď ho svým (jinak se nepřihlásíš).
+	# (Záměrně tu není funkční hash — ať se do gitu nedostane reálná, byť localhost-only, credential.)
+	appPasswordHash: 'REPLACE_ME_bcrypt_hash'

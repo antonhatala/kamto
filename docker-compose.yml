@@ -1,6 +1,10 @@
 services:
   php:
-    build: .
+    build:
+      context: .
+      # Lokál jede na lehkém `development` stage (zdroj + vendor bind-mountuje volume níže).
+      # Produkční image (zapečený zdroj/vendor/CSS) se buildí `--target production` v CI.
+      target: development
     volumes:
       - .:/var/www/html
     environment:
@@ -10,6 +14,11 @@ services:
       # Optional — locally the login password hash comes from the gitignored
       # config/config.local.neon instead. On Bunny this env var is what's actually used.
       APP_PASSWORD_HASH: ${APP_PASSWORD_HASH:-}
+      # DB přes env (Fáze 6): prázdné → DbFactory jede na pdo-sqlite (lokální default). Pro
+      # produkčně-podobný běh proti libSQL: DATABASE_DRIVER=libsql DATABASE_URL=... DATABASE_TOKEN=...
+      DATABASE_DRIVER: ${DATABASE_DRIVER:-}
+      DATABASE_URL: ${DATABASE_URL:-}
+      DATABASE_TOKEN: ${DATABASE_TOKEN:-}
 
   nginx:
     image: nginx:alpine

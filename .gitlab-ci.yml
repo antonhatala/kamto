@@ -1,0 +1,81 @@
+# Kamto — CI/CD (Fáze 6). Build produkčního image → push do GitLab Container Registry →
+# (manuální) deploy na Bunny Magic Containers. Build/push jsou hotové a fungují přes
+# předdefinované GitLab proměnné (nezávislé na konkrétním účtu/projektu). Deploy + migrace
+# jsou zatím DOKUMENTOVANÉ PLACEHOLDERY — přesný Bunny API endpoint a hodnoty doplníme, až
+# uživatel založí Bunny účet/aplikaci a přehodí glab na správný účet (viz docs/PLAN.md, Fáze 6).
+
+stages:
+  - test
+  - build
+  - deploy
+
+variables:
+  # $CI_REGISTRY_IMAGE = registry.<gitlab-host>/<group>/<projekt> (dodá GitLab automaticky).
+  IMAGE_SHA: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
+  IMAGE_LATEST: $CI_REGISTRY_IMAGE:latest
+
+# --- Testy (PHPStan L8 + nette/tester) — brána před buildem ---
+# Credential-independent, běží v Dockeru bez tajností (stejně jako `docker compose run --rm composer test`).
+# Chrání registry před pushem rozbitého :latest z červeného commitu na main.
+test:
+  stage: test
+  image: composer:2
+  script:
+    - composer install --no-interaction --prefer-dist
+    - composer test
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+# --- Build & push produkčního image (stage `production` z Dockerfile) ---
+build-image:
+  stage: build
+  image: docker:27
+  services:
+    - docker:27-dind
+  variables:
+    DOCKER_TLS_CERTDIR: "/certs"
+  before_script:
+    # Do GitLab registry se přihlásíme job tokenem — žádné ruční secrety.
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY"
+  script:
+    - docker build --target production -t "$IMAGE_SHA" -t "$IMAGE_LATEST" .
+    - docker push "$IMAGE_SHA"
+    - docker push "$IMAGE_LATEST"
+  needs: ["test"]   # rozbité testy → žádný build/push (viz `test` job výše)
+  rules:
+    # Buildíme jen na hlavní větvi (deploy artefakt). MR pipeline běží jen `test`.
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+# --- Migrace proti produkční DB (Bunny) ---
+# BLOKOVÁNO: potřebuje funkční libSQL na PHP 8.5 (zatím není artefakt, viz Dockerfile) NEBO
+# jiný DB backend zvolený s uživatelem. Až bude, spustí se `bin/migrate.php` s DATABASE_* z
+# CI/CD proměnných (Settings → CI/CD → Variables, masked): DATABASE_DRIVER/DATABASE_URL/DATABASE_TOKEN.
+migrate:
+  stage: deploy
+  image: "$IMAGE_SHA"
+  script:
+    - echo "TODO (Fáze 6): php bin/migrate.php — vyžaduje DATABASE_DRIVER/URL/TOKEN + libSQL na 8.5"
+    - 'false'   # záměrně padá, dokud není DB backend hotový — ať se to nezapomene dodělat
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      when: manual
+      allow_failure: true
+  needs: ["build-image"]
+
+# --- Deploy na Bunny Magic Containers ---
+# PLACEHOLDER: přesný mechanismus (Bunny API redeploy / pull nového tagu) doplníme podle Bunny
+# dokumentace, až bude aplikace založená. Potřebné CI/CD proměnné (masked):
+#   BUNNY_API_KEY     — API klíč Bunny účtu
+#   BUNNY_MC_APP_ID   — ID Magic Containers aplikace
+# Magic Containers stáhnou $IMAGE_SHA z GitLab registry (registry přístup se nastaví v Bunny UI).
+deploy-bunny:
+  stage: deploy
+  image: curlimages/curl:8.10.1
+  script:
+    - echo "TODO (Fáze 6): trigger Bunny Magic Containers redeploy na $IMAGE_SHA přes Bunny API"
+    - echo "Vyžaduje CI/CD proměnné BUNNY_API_KEY a BUNNY_MC_APP_ID."
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      when: manual   # deploy se pouští ručně z pipeline UI (osobní appka, žádné auto-CD)
+  needs: ["build-image"]

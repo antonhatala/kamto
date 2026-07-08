@@ -1,0 +1,12 @@
+# Vývojové override — Bootstrap ho načítá POUZE v debug módu (APP_ENV=development|local, viz
+# app/Bootstrap.php, fail-closed allowlist). V produkci (APP_ENV=production nebo cokoli mimo
+# allowlist) se tenhle soubor NIKDY nenačte, takže produkční hlavičky z config.neon platí.
+#
+# Tím je vypnutí CSP vázané na APP_ENV, ne na (ne)přítomnost gitignored souboru — dřív to řešil
+# config.local.neon, což byl fail-open risk (kdyby se lokální config omylem dostal do image,
+# vypnul by CSP i v produkci). Tenhle soubor je naopak verzovaný a produkce ho z principu míjí.
+http:
+	headers:
+		# Tracy debug bar injektuje inline <script>+eval → striktní CSP z config.neon by ho
+		# rozbila. null = hlavička se v devu neposílá. V produkci CSP reálně platí.
+		Content-Security-Policy: null

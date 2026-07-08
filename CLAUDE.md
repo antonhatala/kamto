@@ -9,21 +9,27 @@ jsem co platil, kde jsou pauzy → heatmapa s mezerami).
 
 ## Stack
 - **PHP 8.5** · **Nette** (application, di, http, security, forms, robot-loader) + **Latte 3.1** + Tracy.
-- **Data:** SQLite přes tenkou bránu `App\Database\Db`. Primárně nativní **libSQL PHP extension**
-  (`tursodatabase/turso-client-php`) — `file:var/kamto.db` lokálně, vzdálené libSQL URL na Bunny.
-  Fallback `PdoSqliteDb`. Repozitáře = **raw SQL** (žádné Doctrine/ORM).
+- **Data:** SQLite přes tenkou bránu `App\Database\Db`, implementaci volí `DbFactory` dle
+  `DATABASE_DRIVER`. Default (a jediný reálně funkční na PHP 8.5) je **`PdoSqliteDb`** nad
+  `var/kamto.db`. `LibsqlDb` (nativní `tursodatabase/turso-client-php`) je připravený pro Bunny, ale
+  **odložený** — k 2026-07 pro PHP 8.5 není artefakt (viz Dockerfile). Repozitáře = **raw SQL** (žádné Doctrine/ORM).
 - **Migrace:** číslované `migrations/NNN_*.sql`, spouští `bin/migrate.php`, stav v tabulce `_migration`.
 - **Frontend:** Latte + **Tailwind v4** (`@tailwindcss/cli`: `src/css/app.css` → `www/css/app.css`).
   Minimum JS: nativní `<dialog>`/Popover API + Nette snippets/Naja. Bez SPA frameworku.
 - **PWA:** `manifest.json` + service worker.
-- **Config:** NEON (`config/config.neon` + gitignored `config/config.local.neon`); na produkci env.
+- **Config:** NEON — `config/config.neon` (base) + verzovaný `config/config.dev.neon` (dev override,
+  načten jen v debug módu) + gitignored `config/config.local.neon` (jen tajnosti). Env přes `%env.*%`:
+  `APP_PASSWORD_HASH`, `DATABASE_DRIVER`/`DATABASE_URL`/`DATABASE_TOKEN` (Bootstrap doplní defaulty).
 - **Hosting:** Bunny.net — Magic Containers (stateless) + Bunny Database (vzdálená libSQL) + CDN.
+- **Build/deploy (Fáze 6):** vícestupňový `Dockerfile` — dev jede na stage `development` (zdroj bind-mount,
+  viz docker-compose `target: development`), produkce `--target production` (zapečený zdroj + vendor `--no-dev`
+  + buildnuté CSS). CI `.gitlab-ci.yml`: build → push do GitLab registry → (manuální) deploy na Bunny.
 
 ## Struktura
 ```
 app/        Bootstrap.php, Presenters/, Model/, Database/, Templates/
 www/        docroot: index.php, css/, js/, manifest.json, sw.js
-config/     config.neon (+ gitignored config.local.neon)
+config/     config.neon + config.dev.neon (dev override) + gitignored config.local.neon
 migrations/ NNN_*.sql
 bin/        migrate.php, console.php
 src/css/    app.css (zdroj pro Tailwind)
@@ -85,11 +91,14 @@ tests/      nette/tester
   úpravy částky, anti-dvojklik (po 1. submitu blokuje další; disable tlačítka až přes `setTimeout 0`,
   ať name/value stisknutého tlačítka dorazí na server), registrace service workeru. Inline
   `style="background-color:#hex"` u kategorií/heatmapy je OK (style-src, ne script-src).
-- **CSP (Fáze 5):** hlavička `Content-Security-Policy` je v `config/config.neon` (`http.headers`)
-  a je **produkční** — `script-src 'self'` (žádný inline JS), `style-src 'unsafe-inline'` (kvůli
-  inline hex u kategorií/heatmapy), `img-src data:`, `object-src 'none'`. V lokálním dev režimu ji
-  **vypíná** `config/config.local.neon` (`Content-Security-Policy: null`), protože Tracy debug bar
-  injektuje inline `<script>`+eval. config.local.neon je gitignored → na Bunny CSP reálně platí.
+- **CSP (Fáze 5, fail-closed od Fáze 6):** hlavička `Content-Security-Policy` je v `config/config.neon`
+  (`http.headers`) a je **produkční** — `script-src 'self'` (žádný inline JS), `style-src 'unsafe-inline'`
+  (kvůli inline hex u kategorií/heatmapy), `img-src data:`, `object-src 'none'`. V dev režimu ji vypíná
+  **verzovaný** `config/config.dev.neon` (`Content-Security-Policy: null`), který `Bootstrap` načte
+  **jen když je debug mód** (`APP_ENV=development|local`) — Tracy debug bar injektuje inline `<script>`+eval.
+  Vypnutí je tak vázané na `APP_ENV` (fail-closed), ne na (ne)přítomnost gitignored souboru. `config.local.neon`
+  drží čistě jen tajnosti (hash hesla). Pozn.: v produkci Nette DI kontejner nerefreshuje na změnu configu —
+  produkční image má prázdný `temp/cache` (immutable), takže se kompiluje čerstvě s platnou CSP.
 - **PWA (Fáze 5):** `www/manifest.json` (standalone, bg `#fafaf9`, theme `#ffffff`, ikony 192/512
   any + 192/512 maskable), `www/sw.js`, `www/offline.html`, ikony `www/icons/`. SVG předlohy
   `icon.svg`/`icon-maskable.svg` jsou zdroj; PNG (`icon-192/512`, `icon-192/512-maskable`, `apple-touch-icon`)

@@ -1,36 +1,52 @@
-# Kamto — PHP-FPM image. One image for local dev (docker compose, source bind-mounted
-# over it) and later Bunny Magic Containers (Fáze 6, where the source is copied in at
-# build time). Kept intentionally simple for Fáze 0 — no multi-stage build.
-#
-# Nette's hard extension requirements (ctype, tokenizer, json, session, simplexml,
-# mbstring, iconv, fileinfo) already ship in this base image — verified with `php -m`.
-# pdo_sqlite/sqlite3 are present too (→ PdoSqliteDb works out of the box).
-FROM php:8.5-fpm
+# Kamto — vícestupňový build. Lokální dev jede na stage `development` (zdroj se bind-mountuje
+# přes něj, viz docker-compose.yml `target: development`); produkční image pro Bunny Magic
+# Containers (Fáze 6) je stage `production` — zdroj, vendor i buildnuté CSS zapečené uvnitř
+# (`docker build --target production`, viz .gitlab-ci.yml). Stage `base` sdílí obě větve, takže
+# runtime (PHP, ini, libSQL hook) je v dev i produkci identický.
 
-# The base image ships no active php.ini at all (only the *-development/-production
-# templates) — notably output_buffering=Off. That breaks Nette/Latte: the template
-# starts streaming output before Http\Session can still touch session ini settings,
-# producing "ini_set(): Session ini settings cannot be changed after headers have
-# already been sent". Baseline is the PRODUCTION template (display_errors=Off,
-# expose_php=Off, output_buffering=4096): the same image goes to Bunny in Fáze 6, so it
-# must be safe by default — and local dev loses nothing, Tracy renders errors itself
-# whenever APP_ENV != production (see app/Bootstrap.php). The security-relevant
-# directives are additionally pinned in docker/php.ini so they don't silently regress
-# if this template choice ever changes.
+# ---- Stage: assets — Tailwind CSS build (jen buildtime, do runtime image nejde node) ----
+FROM node:24-alpine AS assets
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci
+# Tailwind v4 skenuje utility třídy ze šablon (@source "../../app" v src/css/app.css).
+COPY src ./src
+COPY app ./app
+RUN npm run css   # → www/css/app.css (minified)
+
+# ---- Stage: vendor — Composer, jen produkční závislosti ----
+FROM composer:2 AS vendor
+WORKDIR /app
+COPY composer.json composer.lock ./
+# --no-dev: bez PHPStan/Testeru; --no-scripts: skripty (phpstan/tester) se v produkci nespouští.
+RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts --prefer-dist
+
+# ---- Base runtime — sdílený dev i produkcí ----
+# Nette tvrdě vyžaduje ctype, tokenizer, json, session, simplexml, mbstring, iconv, fileinfo —
+# všechny už v base image jsou (ověřeno `php -m`). pdo_sqlite/sqlite3 taky → PdoSqliteDb funguje.
+FROM php:8.5-fpm AS base
+
+# Base image nemá aktivní php.ini (jen *-development/-production šablony) — notably
+# output_buffering=Off, což rozbije Nette/Latte session ini ("headers already sent"). Baseline
+# je PRODUKČNÍ šablona (display_errors=Off, expose_php=Off, output_buffering=4096): stejný image
+# jde na Bunny, musí být bezpečný by default — a dev nic neztrácí, Tracy renderuje chyby sám,
+# když APP_ENV != production (viz app/Bootstrap.php). Bezpečnostní direktivy jsou navíc pinnuté
+# v docker/php.ini, ať tiše neregresují, kdyby se šablona někdy změnila.
 RUN cp /usr/local/etc/php/php.ini-production /usr/local/etc/php/php.ini
 
 # Kamto overrides + hardening (timezone, display_errors, output_buffering, ...).
 COPY docker/php.ini /usr/local/etc/php/conf.d/kamto.ini
 
-# libSQL extension (tursodatabase/turso-client-php) — ODLOŽENO, stav k 2026-07-07:
-# poslední release `turso-php-extension-v1.6.2` (2025-07-07) má artefakty jen pro
-# PHP 8.1–8.4 a Linux buildy jen x86_64 (žádný aarch64 → na Apple Silicon by lokálně
-# nešel ani ten). Pro PHP 8.5 tedy není co instalovat; appka jede na PdoSqliteDb
-# (config.neon database.driver: pdo-sqlite) a LibsqlDb má runtime guard.
-# Až artefakt pro 8.5 vyjde (https://github.com/tursodatabase/turso-client-php/releases),
-# stačí build s --build-arg LIBSQL_EXT_URL=<url .tar.gz artefaktu> — tarball obsahuje
-# jeden adresář s `liblibsql_php.so` + PHP stubs (ověřeno na 8.4 artefaktu). Default ""
-# nic nestahuje: build je deterministický a kvůli libSQL nikdy nespadne.
+# libSQL extension (tursodatabase/turso-client-php) — STÁLE ODLOŽENO, stav k 2026-07-08:
+# poslední release `turso-php-extension-v1.6.2` (2025-07-07) má artefakty jen pro PHP 8.1–8.4
+# a Linux jen x86_64 (žádný aarch64). Pro PHP 8.5 tedy pořád není co instalovat; appka jede na
+# PdoSqliteDb (DATABASE_DRIVER=pdo-sqlite) a LibsqlDb má runtime guard. Cesty pro Bunny, až přijde
+# na řadu: (a) artefakt pro 8.5 vyjde → build s --build-arg LIBSQL_EXT_URL=<url .tar.gz> níže;
+# (b) pure-PHP HTTP klient proti Turso/libSQL (nová Db implementace, žádná extension); (c) VPS
+# + lokální SQLite (PdoSqliteDb beze změny, ale potřebuje perzistentní volume — Magic Containers
+# jsou stateless). Volba závisí na tom, co Bunny reálně nabízí (řeší se s uživatelem ve Fázi 6).
+# Tarball obsahuje jeden adresář s `liblibsql_php.so` + PHP stubs (ověřeno na 8.4 artefaktu).
+# Default "" nic nestahuje: build je deterministický a kvůli libSQL nikdy nespadne.
 ARG LIBSQL_EXT_URL=""
 RUN if [ -n "$LIBSQL_EXT_URL" ]; then \
 		set -eux; \
@@ -44,3 +60,16 @@ RUN if [ -n "$LIBSQL_EXT_URL" ]; then \
 	fi
 
 WORKDIR /var/www/html
+
+# ---- Dev target — lokální docker-compose přes něj bind-mountuje zdroj i vendor ----
+FROM base AS development
+
+# ---- Produkční target — zdroj, vendor i CSS zapečené (Bunny Magic Containers) ----
+FROM base AS production
+# COPY respektuje .dockerignore (bez vendoru, node_modules, tajností, testů, git historie).
+# bin/ + migrations/ se do image DOSTANOU (migrace se na Bunny pouští z kontejneru).
+COPY --chown=www-data:www-data . /var/www/html
+COPY --from=vendor --chown=www-data:www-data /app/vendor /var/www/html/vendor
+COPY --from=assets --chown=www-data:www-data /app/www/css/app.css /var/www/html/www/css/app.css
+# Runtime adresáře musí být zapisovatelné workery FPM (běží jako www-data).
+RUN chown -R www-data:www-data /var/www/html/temp /var/www/html/log /var/www/html/var
