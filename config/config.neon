@@ -34,10 +34,14 @@ http:
 		#   style-src 'unsafe-inline' → NUTNÉ kvůli inline `style="background-color:#hex"` u
 		#     kategorií/heatmapy (hex je serverový whitelist, viz CategoryPresenter::Palette).
 		#   img-src data: → povolené data URI obrázky. object-src 'none', base-uri/form-action 'self'.
-		# ROZHODNUTÍ: CSP je PRODUKČNÍ. V dev režimu ji vypíná config.local.neon (Content-Security-Policy: null),
-		# protože Tracy debug bar injektuje inline <script>+eval a striktní CSP by ho rozbila. config.local.neon
-		# existuje jen lokálně (gitignored) → na Bunny se CSP reálně aplikuje. Viz CLAUDE.md „Bezpečnost".
+		# ROZHODNUTÍ: CSP je PRODUKČNÍ. V dev režimu ji vypíná verzovaný config.dev.neon
+		# (Content-Security-Policy: null), načtený jen v debug módu (Tracy injektuje inline <script>+eval).
+		# Produkce config.dev.neon míjí → CSP reálně aplikuje (fail-closed dle APP_ENV). Viz CLAUDE.md.
 		Content-Security-Policy: "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'"
+	# Session/CSRF cookie Secure flag (Fáze 6). Za Bunny edge chodí request do kontejneru plain HTTP
+	# (TLS termuje edge), takže default 'auto' (dle isSecured()) by Secure NEnastavil. Vynutíme (produkce
+	# = vždy HTTPS na edge; přidej i HSTS na edge). Lokální http dev to vypíná v config.dev.neon.
+	cookieSecure: true
 
 services:
 	router: App\Router\RouterFactory::createRouter

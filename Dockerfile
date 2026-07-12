@@ -64,12 +64,40 @@ WORKDIR /var/www/html
 # ---- Dev target — lokální docker-compose přes něj bind-mountuje zdroj i vendor ----
 FROM base AS development
 
-# ---- Produkční target — zdroj, vendor i CSS zapečené (Bunny Magic Containers) ----
+# ---- Produkční target — self-serving image (nginx + php-fpm), Bunny Magic Containers ----
+# Magic Containers routují HTTP na port kontejneru, takže image musí sám servírovat HTTP — ne jen
+# FastCGI :9000. Proto tu (jen v produkci, ne v base/dev) přibývá nginx + supervisord; hardened
+# vhost (docroot www/) cestuje s artefaktem, ne jen s dev compose.
 FROM base AS production
+
+# nginx + supervisor jen pro produkční image (dev používá samostatný nginx compose kontejner).
+RUN apt-get update \
+	&& apt-get install -y --no-install-recommends nginx supervisor \
+	&& rm -rf /var/lib/apt/lists/*
+
+COPY docker/nginx.prod.conf /etc/nginx/nginx.conf
+COPY docker/supervisord.conf /etc/supervisor/conf.d/kamto.conf
+# fpm pool override — bind jen na loopback (nginx je ve stejném kontejneru). Jen produkce:
+# dev potřebuje fpm na 0.0.0.0 pro cross-container přístup. Viz docker/php-fpm.prod.conf.
+COPY docker/php-fpm.prod.conf /usr/local/etc/php-fpm.d/zz-kamto.conf
+COPY docker/entrypoint.prod.sh /usr/local/bin/entrypoint.prod.sh
+RUN chmod +x /usr/local/bin/entrypoint.prod.sh
+
 # COPY respektuje .dockerignore (bez vendoru, node_modules, tajností, testů, git historie).
-# bin/ + migrations/ se do image DOSTANOU (migrace se na Bunny pouští z kontejneru).
+# bin/ + migrations/ se do image DOSTANOU (migrace pouští entrypoint při startu proti volume DB).
 COPY --chown=www-data:www-data . /var/www/html
 COPY --from=vendor --chown=www-data:www-data /app/vendor /var/www/html/vendor
 COPY --from=assets --chown=www-data:www-data /app/www/css/app.css /var/www/html/www/css/app.css
-# Runtime adresáře musí být zapisovatelné workery FPM (běží jako www-data).
+# Runtime adresáře musí být zapisovatelné workery FPM (běží jako www-data). var/ je typicky mount
+# perzistentního volume — entrypoint po migraci srovná vlastnictví ještě jednou za běhu.
 RUN chown -R www-data:www-data /var/www/html/temp /var/www/html/log /var/www/html/var
+
+# Unprivileged HTTP port (nginx nepotřebuje root pro bind). Na Bunny se sem namapuje HTTP služba.
+EXPOSE 8080
+
+# Liveness: 302 z / prochází nginxem i fpm (curl -f bere <400 jako OK). Když si Bunny dělá vlastní
+# HTTP probing, je to redundantní, ale neškodí (curl je v image).
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s \
+	CMD curl -fsS http://127.0.0.1:8080/ >/dev/null || exit 1
+
+ENTRYPOINT ["/usr/local/bin/entrypoint.prod.sh"]

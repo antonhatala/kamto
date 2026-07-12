@@ -10,3 +10,6 @@ http:
 		# Tracy debug bar injektuje inline <script>+eval → striktní CSP z config.neon by ho
 		# rozbila. null = hlavička se v devu neposílá. V produkci CSP reálně platí.
 		Content-Security-Policy: null
+	# Lokální dev jede přes http://localhost → Secure cookie by prohlížeč nepustil (session by se
+	# ztratila, login/e2e by spadlo). V produkci je cookieSecure: true (config.neon).
+	cookieSecure: false

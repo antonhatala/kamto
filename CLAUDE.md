@@ -20,10 +20,17 @@ jsem co platil, kde jsou pauzy → heatmapa s mezerami).
 - **Config:** NEON — `config/config.neon` (base) + verzovaný `config/config.dev.neon` (dev override,
   načten jen v debug módu) + gitignored `config/config.local.neon` (jen tajnosti). Env přes `%env.*%`:
   `APP_PASSWORD_HASH`, `DATABASE_DRIVER`/`DATABASE_URL`/`DATABASE_TOKEN` (Bootstrap doplní defaulty).
-- **Hosting:** Bunny.net — Magic Containers (stateless) + Bunny Database (vzdálená libSQL) + CDN.
+- **Hosting:** Bunny.net **Magic Containers** + **perzistentní volume** (mount → `var/`) se **SQLite**
+  (varianta A, rozhodnuto Fáze 6). Single-user, 1 replika, žádné škálování → `PdoSqliteDb` beze změny,
+  data přežijí restart/redeploy na volume. Bunny Database (libSQL/HTTP) je alternativa bez lock-inu
+  (jeden nový `Db` adaptér), ale pro single-user zbytečná.
 - **Build/deploy (Fáze 6):** vícestupňový `Dockerfile` — dev jede na stage `development` (zdroj bind-mount,
-  viz docker-compose `target: development`), produkce `--target production` (zapečený zdroj + vendor `--no-dev`
-  + buildnuté CSS). CI `.gitlab-ci.yml`: build → push do GitLab registry → (manuální) deploy na Bunny.
+  viz docker-compose `target: development`), produkce `--target production` je **self-serving image**:
+  nginx + php-fpm v jednom kontejneru (řídí `supervisord`, `docker/nginx.prod.conf` hardened vhost,
+  docroot `www/`, HTTP na portu **8080**), zapečený zdroj + vendor `--no-dev` + buildnuté CSS.
+  `docker/entrypoint.prod.sh` při startu zmigruje volume DB (idempotentní) a srovná vlastnictví
+  `var/`/`temp/`/`log/` na www-data. CI `.gitlab-ci.yml`: test → build → push do GitLab registry →
+  (manuální) deploy na Bunny. POZOR: server blok v `nginx.prod.conf` drž v syncu s dev `docker/nginx.conf`.
 
 ## Struktura
 ```
