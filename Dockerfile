@@ -1,7 +1,7 @@
 # Kamto — vícestupňový build. Lokální dev jede na stage `development` (zdroj se bind-mountuje
 # přes něj, viz docker-compose.yml `target: development`); produkční image pro Bunny Magic
 # Containers (Fáze 6) je stage `production` — zdroj, vendor i buildnuté CSS zapečené uvnitř
-# (`docker build --target production`, viz .gitlab-ci.yml). Stage `base` sdílí obě větve, takže
+# (`docker build --target production`, viz .github/workflows/deploy.yml). Stage `base` sdílí obě větve, takže
 # runtime (PHP, ini, libSQL hook) je v dev i produkci identický.
 
 # ---- Stage: assets — Tailwind CSS build (jen buildtime, do runtime image nejde node) ----

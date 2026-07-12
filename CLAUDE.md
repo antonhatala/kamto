@@ -29,8 +29,11 @@ jsem co platil, kde jsou pauzy → heatmapa s mezerami).
   nginx + php-fpm v jednom kontejneru (řídí `supervisord`, `docker/nginx.prod.conf` hardened vhost,
   docroot `www/`, HTTP na portu **8080**), zapečený zdroj + vendor `--no-dev` + buildnuté CSS.
   `docker/entrypoint.prod.sh` při startu zmigruje volume DB (idempotentní) a srovná vlastnictví
-  `var/`/`temp/`/`log/` na www-data. CI `.gitlab-ci.yml`: test → build → push do GitLab registry →
-  (manuální) deploy na Bunny. POZOR: server blok v `nginx.prod.conf` drž v syncu s dev `docker/nginx.conf`.
+  `var/`/`temp/`/`log/` na www-data. CI/CD `.github/workflows/deploy.yml` (GitHub Actions): push na main
+  → test → build → push do GHCR (`ghcr.io/antonhatala/kamto`) → redeploy Bunny (action
+  `BunnyWay/actions/container-update-image`, pinnutá na commit SHA). Magic Containers tahají image jen
+  z DockerHubu/GitHubu (ne GitLab), proto GHCR. POZOR: server blok v `nginx.prod.conf` drž v syncu s dev
+  `docker/nginx.conf`.
 
 ## Struktura
 ```

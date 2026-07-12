@@ -36,7 +36,7 @@ Dockerfile
 docker-compose.yml
 docker-compose.override.yml
 .dockerignore
-.gitlab-ci.yml
+.github/
 # POZOR: src/, package.json ani composer.json TU NESMÍ být — .dockerignore filtruje kontext
 # pro VŠECHNY stage, takže assets/vendor stage by přišly o svoje COPY. Do runtime image se
 # přes `COPY . .` dostanou taky (Tailwind zdroj, node manifesty), což je zanedbatelná režie.

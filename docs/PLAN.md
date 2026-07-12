@@ -9,7 +9,8 @@ jsou **měsíční** i **roční**. Položky jde **archivovat a znovu aktivovat*
 (Wallet/Monefy/Spendee/Excel) nevyhovují — placené nebo málo minimalistické.
 
 **Název:** Kamto („Kam to zase ty peníze mizí?").
-**Repo:** `/Users/antonhatala/Projects/anton.hatala/kamto`, remote `git@gitlab:anton.hatala/kamto.git`.
+**Repo:** `/Users/antonhatala/Projects/anton.hatala/kamto`, remote `git@github.com:antonhatala/kamto.git`
+(Fáze 6: přesun z GitLabu na GitHub kvůli GitHub Actions + GHCR; Bunny tahá image z GHCR).
 
 **Rozhodnutí:** SQLite · hosting **Bunny.net** (all-in-one 2026) · **single-user + heslo** ·
 **jen CZK**. Stack drží osobní styl z `tomascinder`/`uzvimze` (Nette + Latte + prosté SQL migrace
@@ -40,7 +41,7 @@ opravy dle nálezů → **master** (sign-off) → **commit**.
   Vzhled světlý, minimalistický, **bez dark mode** (frontend-design plugin, bez screenshotů).
 - Grafy: ruční CSS-grid heatmapa + SVG (skill `dataviz`). PWA: manifest + service worker.
 - Auth: single-user, Nette Security, hash hesla z config/env; bez user tabulky.
-- Peníze: integer haléře. Locale `cs`, `Europe/Prague`. PHPStan + nette/tester. GitLab CI.
+- Peníze: integer haléře. Locale `cs`, `Europe/Prague`. PHPStan + nette/tester. GitHub Actions CI.
 
 ## Datový model (SQLite)
 - **category**: id, name, color (hex), sort_order
@@ -70,8 +71,9 @@ Vše do `kamto/`. Každá fáze projde rotací týmu, po ní `/verify` + `/code-
 - **Fáze 4 — Přehledy:** souhrn, heatmapa rok × služby (mezery), roční přehled po měsících (SVG)
   a kategoriích, detail služby.
 - **Fáze 5 — PWA & UX:** manifest + sw.js, ikony, CSV export, doladění.
-- **Fáze 6 — Deploy na Bunny:** image → GitLab registry → Magic Containers (1 instance; env
-  DATABASE_URL/TOKEN/APP_PASSWORD_HASH), Bunny Database + migrace, CDN pull zone, .gitlab-ci.yml.
+- **Fáze 6 — Deploy na Bunny:** image → GHCR (`ghcr.io`) → Magic Containers + perzistentní volume
+  (varianta A, SQLite; 1 replika; env APP_ENV/APP_PASSWORD_HASH), migrace při startu, CDN endpoint,
+  CI/CD `.github/workflows/deploy.yml` (GitHub Actions).
 
 ## Přípravné kroky (mimo kód)
 1. **Design:** světlý, minimalistický (bez dark mode) — frontend-design plugin, bez screenshotů;

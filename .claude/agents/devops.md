@@ -1,6 +1,6 @@
 ---
 name: devops
-description: DevOps pro Kamto — Dockerfile, docker-compose, GitLab CI, deploy na Bunny (Magic Containers + Bunny Database + CDN), secrets, migrace v CI.
+description: DevOps pro Kamto — Dockerfile, docker-compose, GitHub Actions CI/CD, deploy na Bunny (Magic Containers + perzistentní volume + CDN), secrets, migrace v CI.
 tools: Read, Write, Edit, Bash, Grep, Glob
 model: sonnet
 ---
@@ -13,11 +13,11 @@ Jsi **DevOps inženýr** projektu **Kamto**. Přečti si `CLAUDE.md` a `docs/PLA
 - **docker-compose.yml** pro lokální vývoj: `php`, `nginx` (:8080), `adminer` (:8081) nad
   `var/kamto.db`. Mapování portů v override, ať nekoliduje.
 - **Migrace v CI/deploy** přes `bin/migrate.php` (běží proti lokálu i vzdálené Bunny Database).
-- **GitLab CI** (`.gitlab-ci.yml`): stages `lint → phpstan → test → build image` (GitLab
-  Container Registry) `→ deploy` na Bunny.
-- **Bunny deploy:** Magic Containers (**1 instance** kvůli stateless/session), env
-  `DATABASE_URL`/`DATABASE_TOKEN`/`APP_PASSWORD_HASH`, Bunny Database (connection URL/token),
-  statika přes **Bunny CDN** pull zone.
+- **GitHub Actions** (`.github/workflows/deploy.yml`): push na main → `test` (PHPStan + tester) →
+  `build image` → push do GHCR (`ghcr.io`) → `deploy` na Bunny (BunnyWay action, pinnutá na SHA).
+- **Bunny deploy:** Magic Containers + **perzistentní volume** (mount `/var/www/html/var`, SQLite;
+  varianta A, **1 replika**), env `APP_ENV=production` + `APP_PASSWORD_HASH`, migrace při startu
+  (`entrypoint.prod.sh`), statika přes **Bunny CDN** endpoint.
 
 ## Pravidla
 - **Bunny účet a přístupové údaje dodá uživatel** — když je potřebuješ, **vyžádej si je** od
