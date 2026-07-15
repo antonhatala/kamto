@@ -158,6 +158,9 @@ paralelně:** `security` (bezpečnost BE/FE) ∥ `code-reviewer` (efektivita/min
   Standards × Spec — používá code-reviewer a master), `diagnosing-bugs` (dev role při opravách),
   `codebase-design` (terminologie návrhu), `domain-modeling` (glosář `CONTEXT.md`),
   `writing-great-skills` (autorství vlastních skillů, např. `dataviz` ve Fázi 4).
+- **Vlastní skilly** (`.claude/skills/`): `issue` (user-invoked, `/issue <popis>`) — zpracuje issue
+  přes rotaci: izolovaná `feature/*` větev → `product` rozpad na incrementy → každý increment přes
+  rotaci až po `master ✅` + commit. Po schválení plánu běží autonomně; nepushuje bez pokynu.
 
 ## Lokální vývoj
 Na hostu není potřeba **žádný** nástroj (žádné PHP, Composer, Node/npm) — všechno běží přes
