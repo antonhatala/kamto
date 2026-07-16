@@ -44,7 +44,6 @@ $yearlyId = $repo->insert([
 	'due_month' => 6,
 	'icon' => '🌐',
 	'note' => 'Roční poplatek',
-	'sort_order' => 5,
 	'is_sliding' => 1,
 ]);
 $yearly = $repo->find($yearlyId);
@@ -52,11 +51,11 @@ Assert::same('yearly', $yearly['period']);
 Assert::same(6, $yearly['due_month']);
 Assert::same('🌐', $yearly['icon']);
 Assert::same('Roční poplatek', $yearly['note']);
-Assert::same(5, $yearly['sort_order']);
 // is_sliding — round-trip explicitně poslané hodnoty 1 (klouzavá služba).
 Assert::same(1, $yearly['is_sliding']);
 
-// findAll bez archivovaných, řazeno dle sort_order.
+// findAll — automatické řazení is_sliding, due_day, id (viz CLAUDE.md): Netflix (due_day 15,
+// neklouzavá) před Doménou (klouzavá -> vždy na konci).
 $all = $repo->findAll();
 Assert::count(2, $all);
 Assert::same('Netflix', $all[0]['name']);
@@ -73,7 +72,6 @@ $repo->update($id, [
 	'category_id' => null,
 	'icon' => null,
 	'note' => null,
-	'sort_order' => 1,
 	'is_sliding' => 0,
 ]);
 Assert::same('Netflix Premium', $repo->find($id)['name']);
@@ -90,7 +88,6 @@ $repo->update($id, [
 	'category_id' => null,
 	'icon' => null,
 	'note' => null,
-	'sort_order' => 1,
 	'is_sliding' => 1,
 ]);
 Assert::same(1, $repo->find($id)['is_sliding']);
@@ -113,19 +110,6 @@ Assert::count(2, $repo->findAll());
 $repo->delete($id);
 Assert::null($repo->find($id));
 
-// Deterministické řazení: shodný sort_order -> tie-break podle id.
-$tieId = $repo->insert([
-	'name' => 'Stejné pořadí jako Doména',
-	'amount' => 100,
-	'period' => 'monthly',
-	'due_day' => 1,
-	'sort_order' => 5,
-]);
-Assert::same(
-	[$yearlyId, $tieId],
-	array_column($repo->findAll(), 'id'),
-);
-
 // findArchived() — nový záznam archivujeme, ostatní zůstávají aktivní.
 Assert::same([], $repo->findArchived());
 $repo->archive($yearlyId);
@@ -134,23 +118,29 @@ Assert::count(1, $archivedList);
 Assert::same($yearlyId, $archivedList[0]['id']);
 $repo->reactivate($yearlyId);
 
-// nextSortOrder() — o jedno za nejvyšším napříč všemi (vč. archivu). yearlyId i tieId mají 5.
-Assert::same(6, $repo->nextSortOrder());
+// --- Automatické řazení (is_sliding ASC, due_day ASC, id ASC), viz CLAUDE.md. ---
 
-// Nový záznam s distinktním pořadím dá čitelný swap. nextSortOrder() ho odvodí (6).
-$swapId = $repo->insert([
-	'name' => 'Řazení',
-	'amount' => 100,
-	'period' => 'monthly',
-	'due_day' => 1,
-	'sort_order' => $repo->nextSortOrder(),
-]);
-Assert::same(6, (int) $repo->find($swapId)['sort_order']);
-$repo->archive($swapId); // Archivace nesnižuje maximum — pořadí zůstává vyhrazené.
-Assert::same(7, $repo->nextSortOrder());
-$repo->reactivate($swapId);
+$d20 = $repo->insert(['name' => 'D20', 'amount' => 100, 'period' => 'monthly', 'due_day' => 20]);
+$d5 = $repo->insert(['name' => 'D5', 'amount' => 100, 'period' => 'monthly', 'due_day' => 5]);
+$d1 = $repo->insert(['name' => 'D1', 'amount' => 100, 'period' => 'monthly', 'due_day' => 1]);
+$slidingA = $repo->insert(['name' => 'SlidingA', 'amount' => 100, 'period' => 'monthly', 'due_day' => 1, 'is_sliding' => 1]);
+$slidingB = $repo->insert(['name' => 'SlidingB', 'amount' => 100, 'period' => 'monthly', 'due_day' => 1, 'is_sliding' => 1]);
+// Neklouzavá se stejným due_day jako $d1 (tie-break podle id — vloženo POZDĚJI než $d1, takže je za ním).
+$d1b = $repo->insert(['name' => 'D1b', 'amount' => 100, 'period' => 'monthly', 'due_day' => 1]);
 
-// swapSortOrder() — atomicky prohodí pořadí dvou služeb (řazení se sousedem v presenteru).
-$repo->swapSortOrder($yearlyId, $swapId); // yearly=5, swap=6
-Assert::same(6, (int) $repo->find($yearlyId)['sort_order']);
-Assert::same(5, (int) $repo->find($swapId)['sort_order']);
+// Neklouzavé dle due_day (1,1,5,20), tie-break id u shodného due_day; klouzavé (yearlyId,
+// slidingA, slidingB — všechny is_sliding=1) až na konci, mezi sebou tie-break id.
+Assert::same(
+	[$d1, $d1b, $d5, $d20, $yearlyId, $slidingA, $slidingB],
+	array_column($repo->findAll(), 'id'),
+);
+
+// findArchived() musí mít stejné automatické řazení jako findAll() — archivujeme 3 služby
+// napříč skupinami (neklouzavé s různým due_day + jednu klouzavou) a ověříme pořadí.
+$repo->archive($d20);
+$repo->archive($d5);
+$repo->archive($slidingA);
+Assert::same(
+	[$d5, $d20, $slidingA],
+	array_column($repo->findArchived(), 'id'),
+);

@@ -47,7 +47,8 @@ opravy dle nálezů → **master** (sign-off) → **commit**.
 - **category**: id, name, color (hex), sort_order
 - **service** (šablona): id, name, amount (haléře), period (monthly|yearly), due_day (1–31),
   due_month (1–12, jen yearly), category_id (FK, null), icon (emoji), note, is_archived (0/1),
-  created_at, archived_at, sort_order
+  created_at, archived_at. Řazení je automatické (is_sliding, due_day, id) — bez vlastního
+  sloupce.
 - **payment** (za období): id, service_id (FK, CASCADE), period_year, period_month (1–12),
   due_date (ISO, plán), paid_date (ISO, NULL=nezaplaceno), amount (haléře), note, created_at ·
   UNIQUE(service_id, period_year, period_month)
@@ -65,7 +66,8 @@ Vše do `kamto/`. Každá fáze projde rotací týmu, po ní `/verify` + `/code-
   Tailwind v4 pipeline, SignPresenter + single-user login.
 - **Fáze 1 — DB brána, migrace, schéma:** Db + LibsqlDb (+PdoSqliteDb), bin/migrate.php,
   001_init.sql, repozitáře Service/Payment/Category.
-- **Fáze 2 — CRUD služeb:** seznam, přidání/editace, archivace + reaktivace, řazení, kategorie.
+- **Fáze 2 — CRUD služeb:** seznam (řazení nyní automatické), přidání/editace, archivace +
+  reaktivace, kategorie.
 - **Fáze 3 — Platby:** měsíční/roční splatnost, dashboard „Co zaplatit tento měsíc", Zaplaceno ✓,
   úprava částky, přeskočit.
 - **Fáze 4 — Přehledy:** souhrn, heatmapa rok × služby (mezery), roční přehled po měsících (SVG)

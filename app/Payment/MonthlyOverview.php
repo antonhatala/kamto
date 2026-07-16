@@ -68,11 +68,11 @@ final class MonthlyOverview
 			);
 		}
 
-		// Řazení: due_date vzestupně, pak sort_order služby (stabilní pořadí v rámci dne).
+		// Řazení: due_date vzestupně, pak id služby (stabilní tie-break v rámci dne).
 		usort(
 			$items,
 			static fn(DashboardItem $a, DashboardItem $b): int
-				=> [$a->dueDate, (int) $a->service['sort_order']] <=> [$b->dueDate, (int) $b->service['sort_order']],
+				=> [$a->dueDate, (int) $a->service['id']] <=> [$b->dueDate, (int) $b->service['id']],
 		);
 
 		$sections = ['overdue' => [], 'planned' => [], 'paid' => [], 'skipped' => []];

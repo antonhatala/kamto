@@ -1,5 +1,6 @@
 // Phase 2 — service CRUD: onboarding empty state, add (monthly + yearly incl. the CSS-only
-// period toggle), validation, edit, archive/reactivate, and manual sorting.
+// period toggle), validation, edit, and archive/reactivate. Manual reordering (↑/↓) was
+// replaced by automatic due-day sorting — see 91-service-auto-sort.spec.js for that coverage.
 //
 // These tests build on each other in declaration order (single worker, see playwright.config):
 // global-setup resets the DB, so the suite always starts from an empty database.
@@ -126,19 +127,25 @@ test.describe('Services (Phase 2)', () => {
 		await expect(serviceRow(page, 'Netflix')).toContainText('249 Kč');
 	});
 
-	test('reordering: moving the first service down swaps the order and survives a reload', async ({ page }) => {
+	test('no manual reordering controls remain: only "Upravit" and "Archivovat" per card, order survives a reload', async ({ page }) => {
 		const items = main(page).getByRole('listitem');
 		await expect(items).toHaveCount(2);
 		await expect(items.first()).toContainText('Netflix');
+		await expect(items.last()).toContainText('Doména');
 
-		await main(page).getByRole('button', { name: 'Posunout Netflix dolů' }).click();
+		// Manual reordering (↑/↓) was replaced by automatic due-day sorting (see
+		// 91-service-auto-sort.spec.js) — no arrow buttons of any kind remain on the cards.
+		await expect(main(page).getByRole('button', { name: /Posunout/ })).toHaveCount(0);
+		await expect(main(page).getByText('↑', { exact: true })).toHaveCount(0);
+		await expect(main(page).getByText('↓', { exact: true })).toHaveCount(0);
 
-		await expect(items.first()).toContainText('Doména');
-		await expect(items.last()).toContainText('Netflix');
+		await expect(main(page).getByRole('link', { name: 'Upravit' })).toHaveCount(2);
+		await expect(main(page).getByRole('button', { name: 'Archivovat' })).toHaveCount(2);
 
+		// The (automatic) order is stable across a reload.
 		await page.reload();
-		await expect(items.first()).toContainText('Doména');
-		await expect(items.last()).toContainText('Netflix');
+		await expect(items.first()).toContainText('Netflix');
+		await expect(items.last()).toContainText('Doména');
 	});
 
 	test('archiving hides a service from the active list; the archive shows it muted and can restore it', async ({ page }) => {

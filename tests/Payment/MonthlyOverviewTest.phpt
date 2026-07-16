@@ -20,7 +20,6 @@ function service(
 	string $period,
 	int $dueDay,
 	int $amount,
-	int $sortOrder,
 	?int $dueMonth = null,
 	int $isSliding = 0,
 ): array {
@@ -32,7 +31,6 @@ function service(
 		'due_day' => $dueDay,
 		'due_month' => $dueMonth,
 		'amount' => $amount,
-		'sort_order' => $sortOrder,
 		'is_sliding' => $isSliding,
 	];
 }
@@ -56,13 +54,13 @@ function payment(int $serviceId, string $dueDate, int $amount, ?string $paidDate
 }
 
 $services = [
-	service(1, 'monthly', 5, 10000, 1),   // due 2026-07-05 < dnes, bez platby -> po splatnosti (virtuální)
-	service(2, 'monthly', 20, 20000, 2),  // due 2026-07-20 >= dnes, bez platby -> naplánováno (virtuální)
-	service(3, 'monthly', 10, 30000, 3),  // má zaplacenou platbu
-	service(4, 'monthly', 25, 40000, 4),  // má přeskočenou platbu
-	service(5, 'yearly', 1, 50000, 5, 7), // roční, due_month 7 -> patří sem, due 2026-07-01 < dnes -> po splatnosti
-	service(6, 'yearly', 3, 60000, 6, 3), // roční, due_month 3 -> do července NEpatří
-	service(7, 'monthly', 8, 70000, 7),   // platba s paid_date I skipped_at -> žebříček: zaplaceno vyhrává
+	service(1, 'monthly', 5, 10000),               // due 2026-07-05 < dnes, bez platby -> po splatnosti (virtuální)
+	service(2, 'monthly', 20, 20000),               // due 2026-07-20 >= dnes, bez platby -> naplánováno (virtuální)
+	service(3, 'monthly', 10, 30000),               // má zaplacenou platbu
+	service(4, 'monthly', 25, 40000),               // má přeskočenou platbu
+	service(5, 'yearly', 1, 50000, dueMonth: 7),    // roční, due_month 7 -> patří sem, due 2026-07-01 < dnes -> po splatnosti
+	service(6, 'yearly', 3, 60000, dueMonth: 3),    // roční, due_month 3 -> do července NEpatří
+	service(7, 'monthly', 8, 70000),                // platba s paid_date I skipped_at -> žebříček: zaplaceno vyhrává
 ];
 
 $payments = [
@@ -134,8 +132,8 @@ Assert::same(0, $empty->paidTotal);
 
 // --- Klouzavá služba nikdy Overdue (i ve zcela minulém, "dnes" 2026-07-15 přesahujícím období) ---
 $slidingServices = [
-	service(10, 'monthly', 5, 10000, 1, isSliding: 1),  // klouzavá, bez platby, období DÁVNO v minulosti
-	service(11, 'monthly', 5, 10000, 2, isSliding: 0),  // běžná (kontrola regresu), stejné parametry
+	service(10, 'monthly', 5, 10000, isSliding: 1),  // klouzavá, bez platby, období DÁVNO v minulosti
+	service(11, 'monthly', 5, 10000, isSliding: 0),  // běžná (kontrola regresu), stejné parametry
 ];
 $slidingResult = MonthlyOverview::build(2026, 5, $today, $slidingServices, []);
 

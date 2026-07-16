@@ -17,8 +17,8 @@ use Nette\Application\Attributes\Requires;
 use Nette\Application\UI\Form;
 use Nette\Forms\Control;
 
-/** Seznam/CRUD služeb (šablon plateb) — archivace/reaktivace a ruční řazení, Fáze 2;
- * detail s historií plateb, Fáze 4. */
+/** Seznam/CRUD služeb (šablon plateb) — archivace/reaktivace, Fáze 2; detail s historií
+ * plateb, Fáze 4. Řazení je automatické podle dne splatnosti, viz ServiceRepository::findAll(). */
 final class ServicePresenter extends SecuredPresenter
 {
 	/** @var array<string, mixed>|null Editovaná služba (null v `add`), viz actionEdit(). */
@@ -101,8 +101,8 @@ final class ServicePresenter extends SecuredPresenter
 		$this->template->history = ServiceHistory::build($this->clock->now(), $service, $payments);
 	}
 
-	// Archivace/reaktivace/řazení mění stav → jen POST signály (automatická same-origin
-	// ochrana Nette pro `handle*` metody, viz Nette\Application\UI\AccessPolicy).
+	// Archivace/reaktivace mění stav → jen POST signály (automatická same-origin ochrana Nette
+	// pro `handle*` metody, viz Nette\Application\UI\AccessPolicy).
 
 	#[Requires(methods: 'POST')]
 	public function handleArchive(int $id): void
@@ -125,20 +125,6 @@ final class ServicePresenter extends SecuredPresenter
 
 		$this->serviceRepository->reactivate($id);
 		$this->flashMessage('Služba byla obnovena.');
-		$this->redirect('Service:default');
-	}
-
-	#[Requires(methods: 'POST')]
-	public function handleMoveUp(int $id): void
-	{
-		$this->swapWithNeighbor($id, -1);
-		$this->redirect('Service:default');
-	}
-
-	#[Requires(methods: 'POST')]
-	public function handleMoveDown(int $id): void
-	{
-		$this->swapWithNeighbor($id, 1);
 		$this->redirect('Service:default');
 	}
 
@@ -277,37 +263,15 @@ final class ServicePresenter extends SecuredPresenter
 		];
 
 		if ($this->editedService !== null) {
-			// Editace neměří created_at/is_archived/archived_at/sort_order.
-			$data['sort_order'] = (int) $this->editedService['sort_order'];
+			// Editace neměří created_at/is_archived/archived_at.
 			$this->serviceRepository->update((int) $this->editedService['id'], $data);
 			$this->flashMessage('Služba byla upravena.');
 		} else {
-			$data['sort_order'] = $this->serviceRepository->nextSortOrder();
 			$this->serviceRepository->insert($data);
 			$this->flashMessage('Služba byla přidána.');
 		}
 
 		$this->redirect('Service:default');
-	}
-
-	/** Prohodí sort_order se sousedem v aktivním (nearchivovaném) seznamu. */
-	private function swapWithNeighbor(int $id, int $offset): void
-	{
-		$services = $this->serviceRepository->findAll();
-		$position = array_search($id, array_column($services, 'id'), true);
-		if ($position === false) {
-			return; // Mezitím smazáno/archivováno — tiché no-op.
-		}
-
-		$targetPosition = $position + $offset;
-		if ($targetPosition < 0 || $targetPosition >= count($services)) {
-			return; // Krajní pozice — no-op (tlačítko má být v UI skryté).
-		}
-
-		$this->serviceRepository->swapSortOrder(
-			(int) $services[$position]['id'],
-			(int) $services[$targetPosition]['id'],
-		);
 	}
 
 	/** @return array<int, array<string, mixed>> Kategorie indexované podle id — pro zobrazení u služby bez N+1. */

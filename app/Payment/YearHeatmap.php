@@ -72,11 +72,13 @@ final class YearHeatmap
 			);
 		}
 
+		// Automatické řazení (viz CLAUDE.md) — konzistentní se seznamem služeb
+		// (ServiceRepository::findAll/findArchived): neklouzavé dle due_day, klouzavé na konci.
 		usort(
 			$rows,
 			static fn(HeatmapRow $a, HeatmapRow $b): int
-				=> [(int) $a->service['sort_order'], (int) $a->service['id']]
-					<=> [(int) $b->service['sort_order'], (int) $b->service['id']],
+				=> [(int) $a->service['is_sliding'], (int) $a->service['due_day'], (int) $a->service['id']]
+					<=> [(int) $b->service['is_sliding'], (int) $b->service['due_day'], (int) $b->service['id']],
 		);
 
 		return new YearHeatmapResult($rows);

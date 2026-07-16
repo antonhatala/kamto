@@ -35,26 +35,24 @@ final class ServiceRepository
 		return $this->db->fetch('SELECT * FROM service WHERE id = ? AND is_archived = 0', [$id]);
 	}
 
-	/** @return list<array<string, mixed>> */
+	/**
+	 * Automatické řazení (viz CLAUDE.md): neklouzavé služby dle dne splatnosti (1→31), klouzavé
+	 * („Kdykoliv v měsíci") vždy až na konci, stabilní tie-break id.
+	 * @return list<array<string, mixed>>
+	 */
 	public function findAll(bool $includeArchived = false): array
 	{
 		if ($includeArchived) {
-			return $this->db->fetchAll('SELECT * FROM service ORDER BY sort_order, id');
+			return $this->db->fetchAll('SELECT * FROM service ORDER BY is_sliding, due_day, id');
 		}
 
-		return $this->db->fetchAll('SELECT * FROM service WHERE is_archived = 0 ORDER BY sort_order, id');
+		return $this->db->fetchAll('SELECT * FROM service WHERE is_archived = 0 ORDER BY is_sliding, due_day, id');
 	}
 
 	/** @return list<array<string, mixed>> */
 	public function findArchived(): array
 	{
-		return $this->db->fetchAll('SELECT * FROM service WHERE is_archived = 1 ORDER BY sort_order, id');
-	}
-
-	/** Pořadí pro nový záznam = o jedno za nejvyšším (napříč všemi vč. archivu). */
-	public function nextSortOrder(): int
-	{
-		return (int) $this->db->fetchField('SELECT COALESCE(MAX(sort_order), 0) + 1 FROM service');
+		return $this->db->fetchAll('SELECT * FROM service WHERE is_archived = 1 ORDER BY is_sliding, due_day, id');
 	}
 
 	/**
@@ -67,7 +65,6 @@ final class ServiceRepository
 	 *     category_id?: int|null,
 	 *     icon?: string|null,
 	 *     note?: string|null,
-	 *     sort_order?: int,
 	 *     is_sliding?: int,
 	 * } $data
 	 */
@@ -75,8 +72,8 @@ final class ServiceRepository
 	{
 		$this->db->execute(
 			'INSERT INTO service
-				(name, amount, period, due_day, due_month, category_id, icon, note, created_at, sort_order, is_sliding)
-				VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+				(name, amount, period, due_day, due_month, category_id, icon, note, created_at, is_sliding)
+				VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
 			[
 				$data['name'],
 				$data['amount'],
@@ -88,7 +85,6 @@ final class ServiceRepository
 				$data['note'] ?? null,
 				// created_at si repozitář generuje sám — volající ho neposílá (sjednoceno napříč repozitáři).
 				date(DATE_ATOM),
-				$data['sort_order'] ?? 0,
 				$data['is_sliding'] ?? 0,
 			],
 		);
@@ -109,7 +105,6 @@ final class ServiceRepository
 	 *     category_id: int|null,
 	 *     icon: string|null,
 	 *     note: string|null,
-	 *     sort_order: int,
 	 *     is_sliding: int,
 	 * } $data
 	 */
@@ -118,7 +113,7 @@ final class ServiceRepository
 		$this->db->execute(
 			'UPDATE service SET
 				name = ?, amount = ?, period = ?, due_day = ?, due_month = ?,
-				category_id = ?, icon = ?, note = ?, sort_order = ?, is_sliding = ?
+				category_id = ?, icon = ?, note = ?, is_sliding = ?
 				WHERE id = ?',
 			[
 				$data['name'],
@@ -129,7 +124,6 @@ final class ServiceRepository
 				$data['category_id'],
 				$data['icon'],
 				$data['note'],
-				$data['sort_order'],
 				$data['is_sliding'],
 				$id,
 			],
@@ -150,25 +144,6 @@ final class ServiceRepository
 			'UPDATE service SET is_archived = 0, archived_at = NULL WHERE id = ?',
 			[$id],
 		);
-	}
-
-	/**
-	 * Prohodí sort_order dvou služeb v jedné transakci (řazení se sousedem, viz
-	 * ServicePresenter::handleMoveUp/handleMoveDown). Atomické — buď se přehodí obě, nebo nic.
-	 */
-	public function swapSortOrder(int $idA, int $idB): void
-	{
-		$this->db->transaction(function () use ($idA, $idB): void {
-			$orderA = (int) $this->db->fetchField('SELECT sort_order FROM service WHERE id = ?', [$idA]);
-			$orderB = (int) $this->db->fetchField('SELECT sort_order FROM service WHERE id = ?', [$idB]);
-			$this->setSortOrder($idA, $orderB);
-			$this->setSortOrder($idB, $orderA);
-		});
-	}
-
-	private function setSortOrder(int $id, int $sortOrder): void
-	{
-		$this->db->execute('UPDATE service SET sort_order = ? WHERE id = ?', [$sortOrder, $id]);
 	}
 
 	public function delete(int $id): void

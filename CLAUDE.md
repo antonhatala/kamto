@@ -57,6 +57,8 @@ tests/      nette/tester
 - Datum/čas ISO 8601 v DB; časová zóna `Europe/Prague`; locale `cs`.
 - **PHPStan** (co nejvyšší level) + **nette/tester** tam, kde to dává smysl.
 - Komentáře česky; identifikátory anglicky.
+- **Služby se řadí automaticky** `is_sliding, due_day, id` (neklouzavé dle dne v měsíci 1→31,
+  klouzavé na konec); ruční řazení neexistuje.
 
 ## Design (světlý, minimalistický, BEZ dark mode)
 - Řídit se **frontend-design pluginem**. Světlé pozadí, vzdušný layout, jemné stíny, zaoblené rohy.
