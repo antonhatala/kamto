@@ -48,6 +48,10 @@ http:
 # takže session přežije restart/redeploy stejně jako SQLite databáze (viz database.path výše).
 session:
 	savePath: %rootDir%/var/sessions
+	# Sliding expirace 14 dní (pohodlí single-user appky) — bez ní by Nette default odhlásil
+	# po zavření prohlížeče (nepersistentní cookie) i po ~24 min nečinnosti (session.gc_maxlifetime).
+	# Nette `expiration` nastaví obojí zároveň.
+	expiration: 14 days
 
 services:
 	router: App\Router\RouterFactory::createRouter
