@@ -165,7 +165,7 @@ final class ServicePresenter extends SecuredPresenter
 		// Klouzavá služba (jen měsíční perioda, viz CONTEXT.md) nemá pevný den splatnosti —
 		// checkbox je ortogonální k periodě, roční klouzavá neexistuje (vynuceno v
 		// serviceFormSucceeded(), na formuláři se u roční jen ignoruje).
-		$form->addCheckbox('is_sliding', 'Klouzavá (bez pevného dne)');
+		$form->addCheckbox('is_sliding', 'Platím kdykoliv v měsíci');
 
 		// Povinnost due_day je podmíněná (yearly vždy, monthly jen bez klouzavosti) — stejný
 		// vzor jako due_month níže: NENÍ setRequired() na formuláři, vynucuje se až v

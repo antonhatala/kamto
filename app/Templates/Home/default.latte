@@ -9,7 +9,7 @@
 	{var $service = $item->service}
 	{var $muted = $sectionKey === 'paid' || $sectionKey === 'skipped'}
 	{var $overdue = $sectionKey === 'overdue'}
-	{* Klouzavá služba (bez pevného dne) nikdy nespadne do „Po splatnosti" (viz PaymentStatus::derive)
+	{* Služba „Kdykoliv v měsíci" (bez pevného dne, `is_sliding`) nikdy nespadne do „Po splatnosti" (viz PaymentStatus::derive)
 	   — dokud čeká na zaplacení, dostane jemné akcentní (copper) odlišení místo neutrálního rámečku,
 	   ať v sekci „K zaplacení" viditelně „svítí". Jednou zaplacená/přeskočená se ztlumí jako ostatní. *}
 	{var $sliding = (int) $service['is_sliding'] === 1}
@@ -39,14 +39,14 @@
 				{elseif $sectionKey === 'skipped'}
 					<span class="inline-flex items-center gap-1 font-medium text-stone-500"><span aria-hidden="true">–</span> {$item->status->label()}</span>
 				{elseif $sliding}
-					{* Klouzavá nemá pevný den — datum by tu bylo nepravdivé, ukazujeme jen slovní stav (badge níže). *}
+					{* „Kdykoliv v měsíci" nemá pevný den — datum by tu bylo nepravdivé, ukazujeme jen slovní stav (badge níže). *}
 					<span class="text-stone-500">Kdykoliv během měsíce</span>
 				{else}
 					<span class="text-stone-500">Splatnost {$item->dueDate|date}</span>
 				{/if}
 				{* Jeden sdílený badge pro všechny sekce (Zaplaceno/Přeskočeno/K zaplacení) — Overdue u
 				   klouzavé nikdy nenastane (PaymentStatus::derive), takže se sem nedostane. *}
-				<span n:if="$sliding" class="badge-accent" title="Bez pevného dne splatnosti">Klouzavá</span>
+				<span n:if="$sliding" class="badge-accent" title="Bez pevného dne splatnosti">Kdykoliv</span>
 			</p>
 		</div>
 

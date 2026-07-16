@@ -1,7 +1,7 @@
 // Increment 2 — sliding services ("klouzavé služby", service.is_sliding): a monthly service
 // without a fixed due day. Covers:
 //   - the add-form progressive disclosure (CSS :has() reveal) incl. the monthly↔yearly edge case
-//   - the service list / detail page showing a "Klouzavá" badge instead of a due day
+//   - the service list / detail page showing a "Kdykoliv" badge instead of a due day
 //   - the "Co zaplatit" dashboard: "Kdykoliv během měsíce" wording, accent (not red) treatment,
 //     NEVER placed in "Po splatnosti" (even though its placeholder due_day=1 would make a
 //     regular service overdue), and the same pay/skip/unskip actions as a regular service
@@ -42,7 +42,7 @@ async function addMonthlyService(page, { name, amount, sliding = false, dueDay }
 	await page.getByLabel('Název').fill(name);
 	await page.getByLabel('Částka (Kč)').fill(amount);
 	if (sliding) {
-		await page.getByLabel('Klouzavá (bez pevného dne)').check();
+		await page.getByLabel('Platím kdykoliv v měsíci').check();
 	} else {
 		await page.getByLabel('Den splatnosti').fill(String(dueDay));
 	}
@@ -59,7 +59,7 @@ test.describe('Sliding services (Increment 2)', () => {
 	test('add form: monthly+sliding hides the due day; switching to yearly hides the checkbox and shows both date fields', async ({ page }) => {
 		await page.goto('/service/add');
 
-		const sliding = page.getByLabel('Klouzavá (bez pevného dne)');
+		const sliding = page.getByLabel('Platím kdykoliv v měsíci');
 		const dueDay = page.getByLabel('Den splatnosti');
 		const dueMonth = page.getByLabel('Měsíc splatnosti');
 
@@ -68,13 +68,13 @@ test.describe('Sliding services (Increment 2)', () => {
 		await expect(dueDay).toBeVisible();
 		await expect(dueMonth).toBeHidden();
 
-		// Checking "Klouzavá" hides the due day field (pure CSS :has(), no JS).
+		// Checking "Platím kdykoliv v měsíci" hides the due day field (pure CSS :has(), no JS).
 		await sliding.check();
 		await expect(dueDay).toBeHidden();
 
-		// Switching to yearly: "Klouzavá" makes no sense there (server ignores it anyway) — the
-		// checkbox itself hides, and BOTH date fields become visible regardless of the
-		// (now-hidden, still-checked) sliding checkbox.
+		// Switching to yearly: "Platím kdykoliv v měsíci" makes no sense there (server ignores it
+		// anyway) — the checkbox itself hides, and BOTH date fields become visible regardless of
+		// the (now-hidden, still-checked) sliding checkbox.
 		await main(page).getByText('Ročně', { exact: true }).click();
 		await expect(sliding).toBeHidden();
 		await expect(dueDay).toBeVisible();
@@ -87,23 +87,23 @@ test.describe('Sliding services (Increment 2)', () => {
 		await expect(dueDay).toBeHidden();
 	});
 
-	test('creating a sliding service without a due day succeeds; the list and detail show a "Klouzavá" badge instead of a due day', async ({ page }) => {
+	test('creating a sliding service without a due day succeeds; the list and detail show a "Kdykoliv" badge instead of a due day', async ({ page }) => {
 		await addMonthlyService(page, { name: 'Barber', amount: '450', sliding: true });
 		await addMonthlyService(page, { name: 'Internet', amount: '600', dueDay: 20 });
 
 		await page.goto('/service/');
 		const barberRow = serviceRow(page, 'Barber');
-		await expect(barberRow.getByText('Klouzavá', { exact: true })).toBeVisible();
+		await expect(barberRow.getByText('Kdykoliv', { exact: true })).toBeVisible();
 		await expect(barberRow).not.toContainText('Splatnost');
 
 		const internetRow = serviceRow(page, 'Internet');
 		await expect(internetRow).toContainText('Splatnost 20.');
-		await expect(internetRow.getByText('Klouzavá', { exact: true })).toHaveCount(0);
+		await expect(internetRow.getByText('Kdykoliv', { exact: true })).toHaveCount(0);
 
 		// Detail page mirrors the same "badge instead of due day" rule.
 		await barberRow.getByRole('link', { name: 'Barber', exact: true }).click();
 		await expect(page).toHaveURL(/\/service\/detail\/\d+$/);
-		await expect(main(page).getByText('Klouzavá', { exact: true })).toBeVisible();
+		await expect(main(page).getByText('Kdykoliv', { exact: true })).toBeVisible();
 		await expect(main(page).getByRole('heading', { name: 'Barber', level: 1 })).toBeVisible();
 		await expect(main(page).locator('p').first()).not.toContainText('Splatnost');
 	});
@@ -116,7 +116,7 @@ test.describe('Sliding services (Increment 2)', () => {
 
 		// Pre-filled from the stored service: the checkbox is already checked and, per the same
 		// CSS rule as the add form, the due day stays hidden.
-		const sliding = page.getByLabel('Klouzavá (bez pevného dne)');
+		const sliding = page.getByLabel('Platím kdykoliv v měsíci');
 		await expect(sliding).toBeChecked();
 		await expect(page.getByLabel('Den splatnosti')).toBeHidden();
 
@@ -125,31 +125,31 @@ test.describe('Sliding services (Increment 2)', () => {
 		await page.getByRole('button', { name: 'Uložit' }).click();
 		await expect(page.getByRole('status')).toHaveText('Služba byla upravena.');
 
-		// List: still a "Klouzavá" badge (not a due day), amount updated.
+		// List: still a "Kdykoliv" badge (not a due day), amount updated.
 		const row = serviceRow(page, 'Barber');
 		await expect(row).toContainText('500 Kč');
-		await expect(row.getByText('Klouzavá', { exact: true })).toBeVisible();
+		await expect(row.getByText('Kdykoliv', { exact: true })).toBeVisible();
 		await expect(row).not.toContainText('Splatnost');
 
 		// Detail: same rule.
 		await row.getByRole('link', { name: 'Barber', exact: true }).click();
-		await expect(main(page).getByText('Klouzavá', { exact: true })).toBeVisible();
+		await expect(main(page).getByText('Kdykoliv', { exact: true })).toBeVisible();
 
 		// Dashboard: still "Kdykoliv během měsíce" + badge, never a due date — the guardrail's
 		// whole point (a reset is_sliding would turn this into an ordinary dated service here).
 		await page.goto('/');
 		const dashboardRow = dashRow(page, 'Barber');
 		await expect(dashboardRow).toContainText('Kdykoliv během měsíce');
-		await expect(dashboardRow.getByText('Klouzavá', { exact: true })).toBeVisible();
+		await expect(dashboardRow.getByText('Kdykoliv', { exact: true })).toBeVisible();
 		await expect(dashboardRow).not.toContainText('Splatnost');
 	});
 
-	test('editing a sliding service to uncheck "Klouzavá" reveals the due day and requires it server-side; filling it in saves as a regular service', async ({ page }) => {
+	test('editing a sliding service to uncheck "Platím kdykoliv v měsíci" reveals the due day and requires it server-side; filling it in saves as a regular service', async ({ page }) => {
 		await addMonthlyService(page, { name: 'Barber', amount: '450', sliding: true });
 
 		await serviceRow(page, 'Barber').getByRole('link', { name: 'Upravit' }).click();
 
-		const sliding = page.getByLabel('Klouzavá (bez pevného dne)');
+		const sliding = page.getByLabel('Platím kdykoliv v měsíci');
 		const dueDay = page.getByLabel('Den splatnosti');
 		await expect(dueDay).toBeHidden();
 
@@ -169,17 +169,17 @@ test.describe('Sliding services (Increment 2)', () => {
 
 		const row = serviceRow(page, 'Barber');
 		await expect(row).toContainText('Splatnost 10.');
-		await expect(row.getByText('Klouzavá', { exact: true })).toHaveCount(0);
+		await expect(row.getByText('Kdykoliv', { exact: true })).toHaveCount(0);
 	});
 
-	test('dashboard (current month): a sliding service is a "K zaplacení" candidate showing "Kdykoliv během měsíce" + a "Klouzavá" badge, never "Po splatnosti"', async ({ page }) => {
+	test('dashboard (current month): a sliding service is a "K zaplacení" candidate showing "Kdykoliv během měsíce" + a "Kdykoliv" badge, never "Po splatnosti"', async ({ page }) => {
 		await addMonthlyService(page, { name: 'Barber', amount: '450', sliding: true });
 
 		await page.goto('/');
 		const row = dashRow(page, 'Barber');
 		await expect(row).toBeVisible();
 		await expect(row).toContainText('Kdykoliv během měsíce');
-		await expect(row.getByText('Klouzavá', { exact: true })).toBeVisible();
+		await expect(row.getByText('Kdykoliv', { exact: true })).toBeVisible();
 		// No concrete due date and no "Splatnost" wording for a sliding row.
 		await expect(row).not.toContainText('Splatnost');
 		await expect(row).not.toContainText(/\d{1,2}\.\s\d{1,2}\.\s\d{4}/);
@@ -224,7 +224,7 @@ test.describe('Sliding services (Increment 2)', () => {
 		await expect(page.getByRole('status')).toHaveText('Platba byla označena jako zaplacená.');
 		const paidRow = dashRow(page, 'Barber');
 		await expect(paidRow.getByRole('button', { name: 'Vrátit Barber mezi nezaplacené' })).toBeVisible();
-		await expect(paidRow.getByText('Klouzavá', { exact: true })).toBeVisible();
+		await expect(paidRow.getByText('Kdykoliv', { exact: true })).toBeVisible();
 
 		// "Vrátit" puts it back among the unpaid, still sliding.
 		await paidRow.getByRole('button', { name: 'Vrátit Barber mezi nezaplacené' }).click();
@@ -238,7 +238,7 @@ test.describe('Sliding services (Increment 2)', () => {
 
 		const skipped = main(page).locator('details').filter({ hasText: 'Zrušit přeskočení' });
 		await skipped.locator('summary').click();
-		await expect(skipped.getByText('Klouzavá', { exact: true })).toBeVisible();
+		await expect(skipped.getByText('Kdykoliv', { exact: true })).toBeVisible();
 		await skipped.getByRole('button', { name: 'Zrušit přeskočení u Barber' }).click();
 
 		await expect(page.getByRole('status')).toHaveText('Přeskočení bylo zrušeno.');

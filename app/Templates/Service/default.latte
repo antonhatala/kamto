@@ -40,7 +40,7 @@
 						{else}
 							<span class="rounded-full bg-stone-100 px-2 py-0.5 font-medium text-stone-600">Měsíčně</span>
 							{if (int) $service['is_sliding'] === 1}
-								<span class="badge-accent" title="Bez pevného dne splatnosti">Klouzavá</span>
+								<span class="badge-accent" title="Bez pevného dne splatnosti">Kdykoliv</span>
 							{else}
 								<span>Splatnost {$service['due_day']}.</span>
 							{/if}
