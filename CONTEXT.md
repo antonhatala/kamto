@@ -36,8 +36,17 @@ _Avoid_: deadline, termín
 Žebříček (od nejvyšší priority): *zaplaceno* (`paid_date` není NULL) · *přeskočeno*
 (`paid_date` NULL a `skipped_at` není NULL) · *po splatnosti* (obě NULL a `due_date` < dnes,
 striktně — v den splatnosti je platba ještě naplánovaná) · *naplánováno* (jinak). Ukládá se
-jen `paid_date`/`skipped_at`; stav se vždy počítá.
+jen `paid_date`/`skipped_at`; stav se vždy počítá. Klouzavá služba nikdy nedá *po splatnosti*
+(viz „Klouzavá služba" níže) — bez paid/skipped je vždy *naplánováno*.
 _Avoid_: status sloupec, flag
+
+**Klouzavá služba** (`service.is_sliding`):
+Služba bez pevného dne splatnosti (platí se, „jak to vyjde") — jednorázová dohoda/nepravidelný
+výdaj, ne měsíc co měsíc stejný den. Nikdy se pro ni neodvodí stav *po splatnosti*
+(`PaymentStatus::derive`), i když je `due_date` v minulosti — chybějící/nezaplacená platba
+zůstává *naplánováno*. `due_date` se pro ni dopočítává na poslední den měsíce (jen řazení „na
+konec", k odvození stavu se nepoužívá). Výchozí hodnota `0` (běžná služba, beze změny chování).
+_Avoid_: pohyblivá služba, flexibilní splatnost
 
 **Přeskočeno** (`skipped_at`):
 Reverzibilní pauza jedné platby za dané období — záměrně se neplatí, ale záznam zůstává

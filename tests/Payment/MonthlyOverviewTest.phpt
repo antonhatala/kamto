@@ -15,8 +15,15 @@ $today = new DateTimeImmutable('2026-07-15');
  * Fixture řádku služby — jen pole, která MonthlyOverview čte (žádná DB).
  * @return array<string, mixed>
  */
-function service(int $id, string $period, int $dueDay, int $amount, int $sortOrder, ?int $dueMonth = null): array
-{
+function service(
+	int $id,
+	string $period,
+	int $dueDay,
+	int $amount,
+	int $sortOrder,
+	?int $dueMonth = null,
+	int $isSliding = 0,
+): array {
 	return [
 		'id' => $id,
 		'name' => "Služba {$id}",
@@ -26,6 +33,7 @@ function service(int $id, string $period, int $dueDay, int $amount, int $sortOrd
 		'due_month' => $dueMonth,
 		'amount' => $amount,
 		'sort_order' => $sortOrder,
+		'is_sliding' => $isSliding,
 	];
 }
 
@@ -123,3 +131,23 @@ $empty = MonthlyOverview::build(2026, 7, $today, [], []);
 Assert::same([], $empty->sections['overdue']);
 Assert::same(0, $empty->remainingTotal);
 Assert::same(0, $empty->paidTotal);
+
+// --- Klouzavá služba nikdy Overdue (i ve zcela minulém, "dnes" 2026-07-15 přesahujícím období) ---
+$slidingServices = [
+	service(10, 'monthly', 5, 10000, 1, isSliding: 1),  // klouzavá, bez platby, období DÁVNO v minulosti
+	service(11, 'monthly', 5, 10000, 2, isSliding: 0),  // běžná (kontrola regresu), stejné parametry
+];
+$slidingResult = MonthlyOverview::build(2026, 5, $today, $slidingServices, []);
+
+// Klouzavá zůstává naplánováno, přestože je "dnes" hluboko za koncem období.
+Assert::count(1, $slidingResult->sections['planned']);
+Assert::same(10, $slidingResult->sections['planned'][0]->service['id']);
+Assert::same(PaymentStatus::Planned, $slidingResult->sections['planned'][0]->status);
+// Klouzavá virtuální položka má due_date dopočtené na poslední den měsíce (řazení "na konec").
+Assert::same('2026-05-31', $slidingResult->sections['planned'][0]->dueDate);
+
+// Běžná služba se stejným due_day za stejné (minulé) období naopak Overdue je.
+Assert::count(1, $slidingResult->sections['overdue']);
+Assert::same(11, $slidingResult->sections['overdue'][0]->service['id']);
+Assert::same(PaymentStatus::Overdue, $slidingResult->sections['overdue'][0]->status);
+Assert::same('2026-05-05', $slidingResult->sections['overdue'][0]->dueDate);

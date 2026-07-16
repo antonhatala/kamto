@@ -13,9 +13,9 @@ $today = new DateTimeImmutable('2026-07-08');
  * Fixture řádku služby — jen pole, která PaymentExport čte (žádná DB).
  * @return array<string, mixed>
  */
-function service(int $id, string $name, ?int $categoryId = null): array
+function service(int $id, string $name, ?int $categoryId = null, int $isSliding = 0): array
 {
-	return ['id' => $id, 'name' => $name, 'category_id' => $categoryId];
+	return ['id' => $id, 'name' => $name, 'category_id' => $categoryId, 'is_sliding' => $isSliding];
 }
 
 /**
@@ -102,3 +102,14 @@ Assert::same(['', 'Bez kategorie', '2026', 'Leden', '2026-01-01', '2026-01-01', 
 $dangling = [service(1, 'Kabelovka', 999)];
 $danglingRows = PaymentExport::buildRows($today, $dangling, [payment(1, 2026, 1, 1000, '2026-01-01', paidDate: '2026-01-01')], $categories);
 Assert::same('Bez kategorie', $danglingRows[0][1]);
+
+// --- Klouzavá služba (is_sliding=1) — nezaplacený/nepřeskočený řádek s due_date v minulosti
+// exportuje se jako "Naplánováno", ne "Po splatnosti" (dnes je 2026-07-08). ---
+$slidingServices = [service(1, 'Nepravidelná platba', isSliding: 1)];
+$slidingRows = PaymentExport::buildRows(
+	$today,
+	$slidingServices,
+	[payment(1, 2026, 1, 5000, '2026-01-15')], // dávno po splatnosti, ale klouzavá
+	[],
+);
+Assert::same(['Nepravidelná platba', 'Bez kategorie', '2026', 'Leden', '2026-01-15', '', 'Naplánováno', '50'], $slidingRows[0]);

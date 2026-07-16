@@ -30,6 +30,8 @@ Assert::null($service['due_month']);
 Assert::null($service['category_id']);
 Assert::same(0, $service['is_archived']);
 Assert::null($service['archived_at']);
+// is_sliding — default 0 (běžná služba), když insert() příznak vůbec nepošle.
+Assert::same(0, $service['is_sliding']);
 // created_at si generuje repozitář sám (dnešní datum, ISO 8601) — volající ho neposílá.
 Assert::truthy($service['created_at']);
 Assert::same(date('Y-m-d'), substr($service['created_at'], 0, 10));
@@ -43,6 +45,7 @@ $yearlyId = $repo->insert([
 	'icon' => '🌐',
 	'note' => 'Roční poplatek',
 	'sort_order' => 5,
+	'is_sliding' => 1,
 ]);
 $yearly = $repo->find($yearlyId);
 Assert::same('yearly', $yearly['period']);
@@ -50,6 +53,8 @@ Assert::same(6, $yearly['due_month']);
 Assert::same('🌐', $yearly['icon']);
 Assert::same('Roční poplatek', $yearly['note']);
 Assert::same(5, $yearly['sort_order']);
+// is_sliding — round-trip explicitně poslané hodnoty 1 (klouzavá služba).
+Assert::same(1, $yearly['is_sliding']);
 
 // findAll bez archivovaných, řazeno dle sort_order.
 $all = $repo->findAll();
@@ -57,7 +62,7 @@ Assert::count(2, $all);
 Assert::same('Netflix', $all[0]['name']);
 Assert::same('Doména', $all[1]['name']);
 
-// update — plná náhrada šablony.
+// update — plná náhrada šablony (bez is_sliding v $data -> defaultně se uloží 0).
 $repo->update($id, [
 	'name' => 'Netflix Premium',
 	'amount' => 39900,
@@ -71,6 +76,22 @@ $repo->update($id, [
 ]);
 Assert::same('Netflix Premium', $repo->find($id)['name']);
 Assert::same(39900, $repo->find($id)['amount']);
+Assert::same(0, $repo->find($id)['is_sliding']);
+
+// update — is_sliding round-trip explicitně poslané hodnoty 1.
+$repo->update($id, [
+	'name' => 'Netflix Premium',
+	'amount' => 39900,
+	'period' => 'monthly',
+	'due_day' => 20,
+	'due_month' => null,
+	'category_id' => null,
+	'icon' => null,
+	'note' => null,
+	'sort_order' => 1,
+	'is_sliding' => 1,
+]);
+Assert::same(1, $repo->find($id)['is_sliding']);
 
 // archive -> is_archived=1 + archived_at nastavené, mizí z findAll() bez příznaku.
 $repo->archive($id);

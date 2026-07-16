@@ -112,3 +112,17 @@ foreach ([0, 1, 3, 4, 5, 6, 7, 8, 9, 10, 11] as $i) {
 }
 Assert::same(1, $yearlyResult->paidCount);
 Assert::same(50000, $yearlyResult->paidTotal);
+
+// --- Klouzavá služba (is_sliding=1) — nezaplacený/nepřeskočený řádek s due_date v minulosti
+// je Planned, ne Overdue. Platí jak pro položku seznamu, tak pro buňku mini-heatmapy (obojí
+// jede přes PaymentStatus::derive resp. PaymentCell::build). ---
+$slidingService = ['id' => 3, 'name' => 'Nepravidelná platba', 'period' => 'monthly', 'due_month' => null, 'is_sliding' => 1];
+$slidingPayments = [payment(2024, 12, '2024-12-15', 5000, null, null)]; // due dávno v minulosti, bez paid/skipped
+$slidingResult = ServiceHistory::build($today, $slidingService, $slidingPayments);
+
+Assert::count(1, $slidingResult->payments);
+Assert::same(PaymentStatus::Planned, $slidingResult->payments[0]->status);
+
+$slidingYear = $slidingResult->heatmapYears[0];
+Assert::same(2024, $slidingYear->year);
+Assert::same(CellState::Planned, $slidingYear->cells[11]->state); // prosinec

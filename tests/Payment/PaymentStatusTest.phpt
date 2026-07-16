@@ -41,6 +41,30 @@ Assert::same(
 	PaymentStatus::derive(null, null, '2026-07-09', $today), // due_date zítra
 );
 
+// Klouzavá služba (isSliding=true) — nikdy Overdue, i s due_date hluboko v minulosti.
+Assert::same(
+	PaymentStatus::Planned,
+	PaymentStatus::derive(null, null, '2026-07-07', $today, true), // due_date včera, ale klouzavá
+);
+Assert::same(
+	PaymentStatus::Planned,
+	PaymentStatus::derive(null, null, '2026-01-01', $today, true), // due_date půl roku zpátky
+);
+// Paid/Skipped mají přednost i u klouzavé — žebříček se neláme.
+Assert::same(
+	PaymentStatus::Paid,
+	PaymentStatus::derive('2026-07-01', null, '2026-01-01', $today, true),
+);
+Assert::same(
+	PaymentStatus::Skipped,
+	PaymentStatus::derive(null, '2026-07-01', '2026-01-01', $today, true),
+);
+// isSliding=false (default parametru) — beze změny, regresní ověření žebříčku.
+Assert::same(
+	PaymentStatus::Overdue,
+	PaymentStatus::derive(null, null, '2026-07-07', $today, false),
+);
+
 // label() — český popisek pro dashboard.
 Assert::same('Zaplaceno', PaymentStatus::Paid->label());
 Assert::same('Přeskočeno', PaymentStatus::Skipped->label());

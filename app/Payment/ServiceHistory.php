@@ -35,6 +35,7 @@ final class ServiceHistory
 				$payment['skipped_at'] ?? null,
 				$dueDate,
 				$today,
+				(int) ($service['is_sliding'] ?? 0) === 1,
 			);
 
 			$amount = (int) $payment['amount'];

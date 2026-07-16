@@ -87,7 +87,13 @@ final class PaymentService
 		}
 
 		$periodMonth = $service['period'] === 'yearly' ? (int) $service['due_month'] : $month;
-		$dueDate = DueDateCalculator::calculate((int) $service['due_day'], $year, $periodMonth);
+		// Klouzavá služba (viz CONTEXT.md) nemá pevný den splatnosti — due_date se dopočte na
+		// poslední den daného měsíce (jen pro řazení "na konec měsíce", k Overdue se u klouzavé
+		// stejně nepoužije, viz PaymentStatus::derive).
+		$dueDay = (int) ($service['is_sliding'] ?? 0) === 1
+			? DueDateCalculator::LastDayOfMonth
+			: (int) $service['due_day'];
+		$dueDate = DueDateCalculator::calculate($dueDay, $year, $periodMonth);
 
 		$this->paymentRepository->insertIgnore([
 			'service_id' => $serviceId,

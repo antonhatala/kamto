@@ -64,6 +64,17 @@ $plannedFuture = PaymentCell::build($monthly, 2026, 8, [
 ], $today);
 Assert::same(CellState::Planned, $plannedFuture->state);
 
+// Klouzavá služba (is_sliding=1) s nezaplaceným payment řádkem v dávno minulém měsíci ->
+// NIKDY Overdue (jen Planned), na rozdíl od běžné služby výše.
+$slidingMonthly = ['period' => 'monthly', 'due_month' => null, 'is_sliding' => 1];
+$slidingOverdueCandidate = PaymentCell::build($slidingMonthly, 2026, 3, [
+	'due_date' => '2026-03-07', 'paid_date' => null, 'skipped_at' => null, 'amount' => 5000,
+], $today);
+Assert::same(CellState::Planned, $slidingOverdueCandidate->state);
+
+// Klouzavá služba bez payment řádku -> stejně Gap jako běžná (žádná změna v nepřítomnosti řádku).
+Assert::same(CellState::Gap, PaymentCell::build($slidingMonthly, 2026, 4, null, $today)->state);
+
 // CellState::fromPaymentStatus — přímý 1:1 převod pro všechny 4 stavy platby.
 Assert::same(CellState::Paid, CellState::fromPaymentStatus(App\Payment\PaymentStatus::Paid));
 Assert::same(CellState::Skipped, CellState::fromPaymentStatus(App\Payment\PaymentStatus::Skipped));

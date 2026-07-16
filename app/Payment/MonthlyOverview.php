@@ -45,8 +45,12 @@ final class MonthlyOverview
 				$amount = (int) $payment['amount'];
 			} else {
 				// Žádný řádek = neřešeno/budoucí — virtuální „naplánováno" s dopočteným
-				// due_date a částkou ze šablony služby.
-				$dueDate = DueDateCalculator::calculate((int) $service['due_day'], $year, $month);
+				// due_date a částkou ze šablony služby. Klouzavá služba nemá pevný den
+				// splatnosti — řadí se na konec měsíce (poslední den), viz CONTEXT.md.
+				$dueDay = (int) ($service['is_sliding'] ?? 0) === 1
+					? DueDateCalculator::LastDayOfMonth
+					: (int) $service['due_day'];
+				$dueDate = DueDateCalculator::calculate($dueDay, $year, $month);
 				$amount = (int) $service['amount'];
 			}
 
@@ -59,6 +63,7 @@ final class MonthlyOverview
 					$payment['skipped_at'] ?? null,
 					$dueDate,
 					$today,
+					(int) ($service['is_sliding'] ?? 0) === 1,
 				),
 			);
 		}

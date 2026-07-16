@@ -14,6 +14,13 @@ use DateTimeImmutable;
 final class DueDateCalculator
 {
 	/**
+	 * Placeholder „poslední den měsíce" — calculate() ho sama sklampuje na skutečný počet
+	 * dní v daném měsíci (28–31), takže funguje pro každý měsíc/rok (viz klouzavá služba,
+	 * CONTEXT.md), ne jen pro měsíce s 31 dny.
+	 */
+	public const int LastDayOfMonth = 31;
+
+	/**
 	 * Den = min(due_day, počet dní v daném měsíci) — u kratších měsíců (duben, únor…) se
 	 * den 29–31 posune na poslední den měsíce místo přetečení do dalšího měsíce. Počet dní
 	 * v měsíci počítá DateTimeImmutable ("last day of this month") nad skutečným

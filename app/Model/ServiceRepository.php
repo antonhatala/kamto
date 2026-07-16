@@ -68,14 +68,15 @@ final class ServiceRepository
 	 *     icon?: string|null,
 	 *     note?: string|null,
 	 *     sort_order?: int,
+	 *     is_sliding?: int,
 	 * } $data
 	 */
 	public function insert(array $data): int
 	{
 		$this->db->execute(
 			'INSERT INTO service
-				(name, amount, period, due_day, due_month, category_id, icon, note, created_at, sort_order)
-				VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+				(name, amount, period, due_day, due_month, category_id, icon, note, created_at, sort_order, is_sliding)
+				VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
 			[
 				$data['name'],
 				$data['amount'],
@@ -88,6 +89,7 @@ final class ServiceRepository
 				// created_at si repozitář generuje sám — volající ho neposílá (sjednoceno napříč repozitáři).
 				date(DATE_ATOM),
 				$data['sort_order'] ?? 0,
+				$data['is_sliding'] ?? 0,
 			],
 		);
 
@@ -105,6 +107,7 @@ final class ServiceRepository
 	 *     icon: string|null,
 	 *     note: string|null,
 	 *     sort_order: int,
+	 *     is_sliding?: int,
 	 * } $data
 	 */
 	public function update(int $id, array $data): void
@@ -112,7 +115,7 @@ final class ServiceRepository
 		$this->db->execute(
 			'UPDATE service SET
 				name = ?, amount = ?, period = ?, due_day = ?, due_month = ?,
-				category_id = ?, icon = ?, note = ?, sort_order = ?
+				category_id = ?, icon = ?, note = ?, sort_order = ?, is_sliding = ?
 				WHERE id = ?',
 			[
 				$data['name'],
@@ -124,6 +127,7 @@ final class ServiceRepository
 				$data['icon'],
 				$data['note'],
 				$data['sort_order'],
+				$data['is_sliding'] ?? 0,
 				$id,
 			],
 		);

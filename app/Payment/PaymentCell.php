@@ -28,7 +28,7 @@ final class PaymentCell
 	}
 
 	/**
-	 * @param array<string, mixed> $service řádek `service` — čte se jen period/due_month
+	 * @param array<string, mixed> $service řádek `service` — čte se jen period/due_month/is_sliding
 	 * @param array<string, mixed>|null $payment řádek `payment` pro (service, $year, $month), nebo null
 	 */
 	public static function build(
@@ -49,6 +49,7 @@ final class PaymentCell
 				$payment['skipped_at'] ?? null,
 				(string) $payment['due_date'],
 				$today,
+				(int) ($service['is_sliding'] ?? 0) === 1,
 			);
 
 			return new self(

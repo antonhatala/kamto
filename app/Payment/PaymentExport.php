@@ -60,7 +60,8 @@ final class PaymentExport
 
 			$paidDate = $payment['paid_date'] !== null ? (string) $payment['paid_date'] : null;
 			$skippedAt = $payment['skipped_at'] !== null ? (string) $payment['skipped_at'] : null;
-			$status = PaymentStatus::derive($paidDate, $skippedAt, (string) $payment['due_date'], $today);
+			$isSliding = $service !== null && (int) ($service['is_sliding'] ?? 0) === 1;
+			$status = PaymentStatus::derive($paidDate, $skippedAt, (string) $payment['due_date'], $today, $isSliding);
 
 			$rows[] = [
 				$service !== null ? (string) $service['name'] : '',

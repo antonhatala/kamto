@@ -149,3 +149,16 @@ $paymentService->unmarkPaid($exclId, 2026, 9);
 $afterUnpay = $payments->findByServiceAndPeriod($exclId, 2026, 9);
 Assert::null($afterUnpay['paid_date']);
 Assert::null($afterUnpay['skipped_at']);
+
+// Klouzavá služba (is_sliding=1) — due_date se dopočte na POSLEDNÍ den měsíce, ne z due_day
+// (ten je jen placeholder). Únor 2027 (28 dní, neprestupný) ověří i klampování měsíce.
+$slidingId = $services->insert([
+	'name' => 'Klouzavá platba',
+	'amount' => 15000,
+	'period' => 'monthly',
+	'due_day' => 1, // placeholder, ignoruje se
+	'is_sliding' => 1,
+]);
+$paymentService->markPaid($slidingId, 2027, 2);
+$slidingRow = $payments->findByServiceAndPeriod($slidingId, 2027, 2);
+Assert::same('2027-02-28', $slidingRow['due_date']);

@@ -24,17 +24,22 @@ enum PaymentStatus
 	 *
 	 * Žebříček: zaplaceno > přeskočeno > po splatnosti (due_date < dnes, striktně — v den
 	 * splatnosti je platba ještě naplánovaná) > naplánováno.
+	 *
+	 * Klouzavá služba (`service.is_sliding`, viz CONTEXT.md) nemá pevný den splatnosti —
+	 * větev "po splatnosti" se pro ni přeskakuje, nezaplacená/nepřeskočená platba tak vždy
+	 * zůstává *naplánováno*, i když je due_date v minulosti.
 	 */
 	public static function derive(
 		?string $paidDate,
 		?string $skippedAt,
 		string $dueDate,
 		DateTimeImmutable $today,
+		bool $isSliding = false,
 	): self {
 		return match (true) {
 			$paidDate !== null => self::Paid,
 			$skippedAt !== null => self::Skipped,
-			$dueDate < $today->format('Y-m-d') => self::Overdue,
+			!$isSliding && $dueDate < $today->format('Y-m-d') => self::Overdue,
 			default => self::Planned,
 		};
 	}
