@@ -12,6 +12,12 @@ APP_DIR=/var/www/html
 # tvoří .lock při čtení kontejneru) → 500. Proto po migraci srovnat vlastnictví všech zapisovatelných
 # adresářů. temp/cache zůstane zkompilovaný (shodný config hash) → fpm ho rovnou převezme, bez rekompilace.
 php "$APP_DIR/bin/migrate.php"
+
+# Nette savePath (var/sessions) si adresář sám nevytvoří — a volume je při prvním deployi
+# prázdný (přebije adresář z image), proto ho tu založíme explicitně. Následný rekurzivní
+# chown níž pokryje i tento podadresář (vlastnictví www-data pro zápis fpm workery).
+mkdir -p "$APP_DIR/var/sessions"
+
 chown -R www-data:www-data "$APP_DIR/var" "$APP_DIR/temp" "$APP_DIR/log"
 
 # Předání řízení supervisoru (php-fpm + nginx) jako PID 1 (správné doručení signálů z Bunny).

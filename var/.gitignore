@@ -1,2 +1,7 @@
 *
 !.gitignore
+
+# Session soubory (Nette savePath) needitujeme do gitu, ale adresář musí existovat i mimo
+# produkční entrypoint (dev bind-mount) — .gitkeep ho drží verzovaný.
+!/sessions/
+!/sessions/.gitkeep

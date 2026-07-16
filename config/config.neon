@@ -43,6 +43,12 @@ http:
 	# = vždy HTTPS na edge; přidej i HSTS na edge). Lokální http dev to vypíná v config.dev.neon.
 	cookieSecure: true
 
+# Session soubory na perzistentní volume (Fáze 6) — /tmp v kontejneru je efemérní, redeploy by
+# odhlásil (nová session storage bez souborů = ztráta session). var/ je mountnutý Bunny volume,
+# takže session přežije restart/redeploy stejně jako SQLite databáze (viz database.path výše).
+session:
+	savePath: %rootDir%/var/sessions
+
 services:
 	router: App\Router\RouterFactory::createRouter
 	authenticator: App\Security\SinglePasswordAuthenticator(%appPasswordHash%)
