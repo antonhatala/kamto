@@ -162,8 +162,17 @@ final class ServicePresenter extends SecuredPresenter
 			->setRequired('Vyberte periodu.')
 			->setDefaultValue('monthly');
 
+		// Klouzavá služba (jen měsíční perioda, viz CONTEXT.md) nemá pevný den splatnosti —
+		// checkbox je ortogonální k periodě, roční klouzavá neexistuje (vynuceno v
+		// serviceFormSucceeded(), na formuláři se u roční jen ignoruje).
+		$form->addCheckbox('is_sliding', 'Klouzavá (bez pevného dne)');
+
+		// Povinnost due_day je podmíněná (yearly vždy, monthly jen bez klouzavosti) — stejný
+		// vzor jako due_month níže: NENÍ setRequired() na formuláři, vynucuje se až v
+		// serviceFormSucceeded(). Range rule se u nevyplněného nepovinného pole nekontroluje
+		// (Nette\Forms\Rules::validate() přeskočí non-Filled pravidla, když control není
+		// required a je prázdný) — klouzavá služba tak projde bez due_day.
 		$form->addInteger('due_day', 'Den splatnosti')
-			->setRequired('Zadejte den splatnosti.')
 			->addRule(Form::Range, 'Den splatnosti musí být 1–31.', [1, 31]);
 
 		// due_month je povinný jen pro roční periodu — vynuceno v serviceFormSucceeded(),
@@ -193,16 +202,21 @@ final class ServicePresenter extends SecuredPresenter
 			->addRule(Form::MaxLength, 'Poznámka může mít nejvýše %d znaků.', 500);
 
 		if ($this->editedService !== null) {
+			$editedIsSliding = (int) $this->editedService['is_sliding'] === 1;
+
 			$form->setDefaults([
 				'name' => $this->editedService['name'],
 				'amount' => Money::toInputCzk((int) $this->editedService['amount']),
 				'period' => $this->editedService['period'],
-				'due_day' => $this->editedService['due_day'],
+				// Klouzavá služba má v DB jen placeholder due_day=1 (nikdy se nepoužije) —
+				// uživateli ho v editaci neukazujeme, pole zůstane prázdné.
+				'due_day' => $editedIsSliding ? null : $this->editedService['due_day'],
 				// NULL (měsíční perioda) musí zůstat null — select se setPrompt() prázdný string nepřijme
 				'due_month' => $this->editedService['due_month'] !== null ? (int) $this->editedService['due_month'] : null,
 				'category_id' => $this->editedService['category_id'] !== null ? (string) $this->editedService['category_id'] : '',
 				'icon' => $this->editedService['icon'] ?? '',
 				'note' => $this->editedService['note'] ?? '',
+				'is_sliding' => $editedIsSliding,
 			]);
 		}
 
@@ -225,8 +239,19 @@ final class ServicePresenter extends SecuredPresenter
 		}
 
 		$isYearly = $values->period === 'yearly';
+		// Klouzavost dává smysl jen pro měsíční periodu — u roční se checkbox ignoruje (roční
+		// klouzavá neexistuje, viz CONTEXT.md).
+		$isSliding = $values->period === 'monthly' && $values->is_sliding;
+
 		if ($isYearly && $values->due_month === null) {
 			$form->addError('Pro roční periodu vyberte měsíc splatnosti.');
+
+			return;
+		}
+
+		// Den splatnosti je povinný vždy KROMĚ klouzavé měsíční služby (ta ho vůbec nezadává).
+		if (!$isSliding && $values->due_day === null) {
+			$form->addError('Zadejte den splatnosti.');
 
 			return;
 		}
@@ -239,12 +264,16 @@ final class ServicePresenter extends SecuredPresenter
 			'name' => trim($values->name),
 			'amount' => $amount,
 			'period' => $values->period,
-			'due_day' => $values->due_day,
+			// Klouzavá služba nemá pevný den — ukládá se placeholder 1 (due_day je v DB
+			// NOT NULL, ale hodnota se u klouzavé nikdy nepoužije, viz
+			// DueDateCalculator::LastDayOfMonth). Zdroj pravdy je is_sliding.
+			'due_day' => $isSliding ? 1 : (int) $values->due_day,
 			// Měsíční perioda due_month nikdy neukládá, i kdyby v requestu přišel (vynuceno na serveru).
 			'due_month' => $isYearly ? (int) $values->due_month : null,
 			'category_id' => $categoryId,
 			'icon' => ($icon = trim($values->icon)) === '' ? null : $icon,
 			'note' => ($note = trim($values->note)) === '' ? null : $note,
+			'is_sliding' => $isSliding ? 1 : 0,
 		];
 
 		if ($this->editedService !== null) {

@@ -30,8 +30,21 @@
 			<p class="field-error" n:ifcontent>{inputError period}</p>
 		</fieldset>
 
+		{* .monthly-only: klouzavost dává smysl jen pro měsíční periodu, u roční se schová (čisté
+		   CSS :has(), bez JS — viz src/css/app.css). Server u roční sliding stejně ignoruje. *}
+		<div class="monthly-only">
+			<label class="flex items-center gap-2.5 text-sm font-medium text-stone-700">
+				<input n:name="is_sliding" class="checkbox">
+				Klouzavá (bez pevného dne)
+			</label>
+			<p class="mt-1.5 text-xs text-stone-500">Nemá pevný den — v „Co zaplatit" svítí celý měsíc, dokud ji neoznačíš zaplaceno.</p>
+			<p class="field-error" n:ifcontent>{inputError is_sliding}</p>
+		</div>
+
 		<div class="grid grid-cols-2 items-start gap-4">
-			<div>
+			{* .due-day-field: schovává se JEN v kombinaci měsíční + klouzavá zaškrtnutá (viz
+			   src/css/app.css) — u roční musí den splatnosti zůstat vždy viditelný. *}
+			<div class="due-day-field">
 				<label n:name="due_day" class="field-label">Den splatnosti</label>
 				<input n:name="due_day" class="input" placeholder="15" autocomplete="off">
 				<p class="mt-1.5 text-xs text-stone-500">Den v měsíci (1–31), kdy službu platíš. U kratších měsíců platí poslední den.</p>

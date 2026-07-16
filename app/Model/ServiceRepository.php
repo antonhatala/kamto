@@ -97,6 +97,9 @@ final class ServiceRepository
 	}
 
 	/**
+	 * Plná náhrada šablony — is_sliding je zde POVINNÝ (na rozdíl od insert()), aby editace
+	 * nemohla klouzavou službu tiše resetovat na 0 při zapomenutém klíči v $data (viz
+	 * ServicePresenter::serviceFormSucceeded(), který ho posílá vždy).
 	 * @param array{
 	 *     name: string,
 	 *     amount: int,
@@ -107,7 +110,7 @@ final class ServiceRepository
 	 *     icon: string|null,
 	 *     note: string|null,
 	 *     sort_order: int,
-	 *     is_sliding?: int,
+	 *     is_sliding: int,
 	 * } $data
 	 */
 	public function update(int $id, array $data): void
@@ -127,7 +130,7 @@ final class ServiceRepository
 				$data['icon'],
 				$data['note'],
 				$data['sort_order'],
-				$data['is_sliding'] ?? 0,
+				$data['is_sliding'],
 				$id,
 			],
 		);

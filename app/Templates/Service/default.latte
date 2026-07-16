@@ -39,7 +39,11 @@
 							<span>Splatnost {$service['due_day']}. {$service['due_month']}.</span>
 						{else}
 							<span class="rounded-full bg-stone-100 px-2 py-0.5 font-medium text-stone-600">Měsíčně</span>
-							<span>Splatnost {$service['due_day']}.</span>
+							{if (int) $service['is_sliding'] === 1}
+								<span class="badge-accent" title="Bez pevného dne splatnosti">Klouzavá</span>
+							{else}
+								<span>Splatnost {$service['due_day']}.</span>
+							{/if}
 						{/if}
 						{var $categoryId = $service['category_id']}
 						{* category_id může být NULL ("Bez kategorie") — nesahat rovnou do pole s NULL klíčem (deprecated v PHP). *}

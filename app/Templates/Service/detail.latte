@@ -22,9 +22,13 @@
 			<p class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-stone-500">
 				<span class="font-medium text-stone-900">{$service['amount']|czk}</span>
 				<span class="rounded-full bg-stone-100 px-2 py-0.5 text-xs font-medium text-stone-600">{$service['period'] === 'yearly' ? 'Ročně' : 'Měsíčně'}</span>
-				<span>
-					Splatnost {$service['due_day']}.{if $service['period'] === 'yearly'} {$monthNames[$service['due_month']]}{/if}
-				</span>
+				{if (int) $service['is_sliding'] === 1}
+					<span class="badge-accent" title="Bez pevného dne splatnosti">Klouzavá</span>
+				{else}
+					<span>
+						Splatnost {$service['due_day']}.{if $service['period'] === 'yearly'} {$monthNames[$service['due_month']]}{/if}
+					</span>
+				{/if}
 				<span class="flex items-center gap-1.5">
 					{* |noescape: barva z CategoryDisplay (whitelist / neutrální fallback). *}
 					<span class="h-2 w-2 shrink-0 rounded-full" style="background-color: {$category->color|noescape}" aria-hidden="true"></span>

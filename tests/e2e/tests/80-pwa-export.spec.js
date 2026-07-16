@@ -121,8 +121,17 @@ test.describe('Service worker (Phase 5)', () => {
 
 		let cacheUrls = null;
 		try {
+			// Don't hardcode the cache name: sw.js bumps CACHE_VERSION whenever app-shell assets
+			// change (see its own comment) and its `activate` handler deletes every other cache, so
+			// there is exactly one live cache at a time — discover it instead of pinning a literal
+			// that would silently go stale (and start "passing" on an empty just-created cache) the
+			// next time the app bumps the version.
 			cacheUrls = await page.evaluate(async () => {
-				const cache = await caches.open('kamto-static-v1');
+				const [cacheName] = await caches.keys();
+				if (!cacheName) {
+					return [];
+				}
+				const cache = await caches.open(cacheName);
 				const keys = await cache.keys();
 				return keys.map((req) => new URL(req.url).pathname);
 			});

@@ -82,9 +82,14 @@ tests/      nette/tester
 - **Focus stavy:** `focus:ring-2 focus:ring-accent-200/300` + `focus:border-accent-500`.
 - **Komponentní třídy** (`@layer components` v `src/css/app.css`, záměrně malá sada):
   `.input`, `.field-label`, `.field-error`, `.btn-primary`, `.btn-danger`, `.btn-ghost`,
-  `.btn-icon`, `.segment-option` (segmentový radio přepínač) a `.yearly-only` (progresivní
-  odhalení pole přes CSS `:has()`, bez JS). Heatmapa: `.heatmap-grid` (13 sloupců, řádky
-  `display:contents`), `.heatmap-cell`, `.hm-box` (čtvercová dlaždice), `.hm-hatch` (šrafování).
+  `.btn-icon`, `.segment-option` (segmentový radio přepínač), `.checkbox` (nativní checkbox,
+  `accent-color` na brand barvu) a `.badge-accent` (malý copper štítek, nese text — např.
+  „Klouzavá"). Progresivní odhalení přes CSS `:has()`, bez JS: `.yearly-only` (pole jen pro
+  roční periodu), `.monthly-only` (checkbox „Klouzavá" jen pro měsíční periodu) a
+  `.due-day-field` (den splatnosti se schová jen v kombinaci měsíční + klouzavá zaškrtnutá — u
+  roční zůstává vždy vidět, viz `Service/form.latte`). Heatmapa: `.heatmap-grid` (13 sloupců,
+  řádky `display:contents`), `.heatmap-cell`, `.hm-box` (čtvercová dlaždice), `.hm-hatch`
+  (šrafování).
 - **Barvy kategorií:** serverový whitelist `CategoryPresenter::Palette` (8 tlumených odstínů
   ladících s terakotou). Pozor: dynamický hex ve `style` atributu vyžaduje `|noescape`
   (Latte escapuje `#` na `\#` → neplatné CSS); bezpečné jen pro hodnoty z tohoto whitelistu.

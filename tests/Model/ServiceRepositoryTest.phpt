@@ -62,7 +62,8 @@ Assert::count(2, $all);
 Assert::same('Netflix', $all[0]['name']);
 Assert::same('Doména', $all[1]['name']);
 
-// update — plná náhrada šablony (bez is_sliding v $data -> defaultně se uloží 0).
+// update — plná náhrada šablony; is_sliding je zde POVINNÝ klíč (guardrail proti tichému
+// resetu klouzavé služby při editaci, viz ServiceRepository::update()).
 $repo->update($id, [
 	'name' => 'Netflix Premium',
 	'amount' => 39900,
@@ -73,6 +74,7 @@ $repo->update($id, [
 	'icon' => null,
 	'note' => null,
 	'sort_order' => 1,
+	'is_sliding' => 0,
 ]);
 Assert::same('Netflix Premium', $repo->find($id)['name']);
 Assert::same(39900, $repo->find($id)['amount']);

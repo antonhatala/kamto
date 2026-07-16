@@ -106,6 +106,37 @@
 	}
 
 	/*
+	 * Klouzavá služba (Increment 2) — stejný :has() princip jako .yearly-only výše, bez JS:
+	 *   1) .monthly-only — checkbox "Klouzavá" dává smysl jen pro měsíční periodu, u roční se schová.
+	 *   2) .due-day-field se schová JEN v kombinaci měsíční + klouzavá zaškrtnutá — u roční musí
+	 *      den splatnosti zůstat vždy viditelný, i kdyby zaškrtnutí zůstalo v (skrytém) DOM.
+	 * Server je zdroj pravdy nezávisle na zobrazení (viz ServicePresenter::serviceFormSucceeded()).
+	 */
+	.monthly-only {
+		display: none;
+	}
+
+	form:has(input[name="period"][value="monthly"]:checked) .monthly-only {
+		display: block;
+	}
+
+	form:has(input[name="period"][value="monthly"]:checked):has(input[name="is_sliding"]:checked) .due-day-field {
+		display: none;
+	}
+
+	/* Nativní checkbox — velikost sladěná s ostatními ovládacími prvky, accent-color naváže
+	   zaškrtnutí na brand barvu (bez @tailwindcss/forms pluginu, prostá CSS vlastnost). */
+	.checkbox {
+		@apply h-4 w-4 shrink-0 rounded border-stone-300 focus:outline-none focus:ring-2 focus:ring-accent-200 focus:ring-offset-0;
+		accent-color: var(--color-accent-600);
+	}
+
+	/* Malý akcentní štítek (copper) — stav nese text, ne jen barvu (např. "Klouzavá"). */
+	.badge-accent {
+		@apply inline-flex items-center rounded-full bg-accent-100 px-2 py-0.5 text-xs font-medium text-accent-700;
+	}
+
+	/*
 	 * Heatmapa (ruční CSS grid, Fáze 4) — 13 sloupců: název (sticky) + 12 měsíců. Řádky mají
 	 * `display:contents` (viz `.contents` v šabloně), takže buňky padají přímo do této mřížky
 	 * a přitom si drží sémantiku role="row". Měsíční sloupce jsou minmax(…, 1fr): na širokém
