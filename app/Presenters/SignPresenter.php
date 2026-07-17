@@ -20,14 +20,11 @@ final class SignPresenter extends BasePresenter
 
 	public function actionIn(): void
 	{
-		// Already signed in? The login page makes no sense — go home.
 		if ($this->getUser()->isLoggedIn()) {
 			$this->redirect('Home:default');
 		}
 	}
 
-	// Odhlášení mění stav (invaliduje session) → jen POST + same-origin (CSRF), viz šablona
-	// (formulář/tlačítko v hlavičce), ne obyčejný <a href> GET odkaz.
 	#[Requires(methods: 'POST', sameOrigin: true)]
 	public function actionOut(): void
 	{
@@ -60,7 +57,6 @@ final class SignPresenter extends BasePresenter
 		}
 
 		try {
-			// Single-user app — no username field, the authenticator only checks the password.
 			$this->getUser()->login('', $values->password);
 			$this->loginThrottle->registerSuccess();
 			$this->redirect('Home:default');

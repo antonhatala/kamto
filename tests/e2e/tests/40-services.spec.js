@@ -1,29 +1,16 @@
-// Phase 2 — service CRUD: onboarding empty state, add (monthly + yearly incl. the CSS-only
-// period toggle), validation, edit, and archive/reactivate. Manual reordering (↑/↓) was
-// replaced by automatic due-day sorting — see 91-service-auto-sort.spec.js for that coverage.
-//
-// These tests build on each other in declaration order (single worker, see playwright.config):
-// global-setup resets the DB, so the suite always starts from an empty database.
-//
-// All content queries are scoped to the `main` landmark — in dev mode the Tracy debug bar
-// injects its own list/listitem/link elements into <body>, which would otherwise leak into
-// page-wide role queries. Flash messages render above <main>, so those stay page-scoped.
 const { test, expect } = require('@playwright/test');
 const { login, parseColor } = require('./helpers');
 
-/** The app content area (excludes header/flashes and the Tracy debug bar). */
 function main(page) {
 	return page.getByRole('main');
 }
 
-/** The active-list row (listitem) for a service of the given name. */
 function serviceRow(page, name) {
 	return main(page).getByRole('listitem').filter({ has: page.getByRole('link', { name, exact: true }) });
 }
 
 test.describe('Services (Phase 2)', () => {
 	test.beforeEach(async ({ page }) => {
-		// login() lands on the dashboard (/); these tests operate on the service list.
 		await login(page);
 		await page.goto('/service/');
 	});
@@ -43,9 +30,6 @@ test.describe('Services (Phase 2)', () => {
 		await page.getByLabel('Částka (Kč)').fill('0');
 		await page.getByLabel('Den splatnosti').fill('32');
 
-		// The inputs carry native constraint attributes (required, min/max) which would block
-		// submission in the browser — disable them so Nette's server-side validation is what
-		// we exercise here.
 		await page.locator('#frm-serviceForm').evaluate((form) => {
 			form.noValidate = true;
 		});
@@ -56,11 +40,9 @@ test.describe('Services (Phase 2)', () => {
 		await expect(main(page).getByText('Zadejte platnou částku')).toBeVisible();
 		await expect(main(page).getByText('Den splatnosti musí být 1–31.')).toBeVisible();
 
-		// Submitted values survive the round-trip — the user doesn't have to retype the form.
 		await expect(page.getByLabel('Částka (Kč)')).toHaveValue('0');
 		await expect(page.getByLabel('Den splatnosti')).toHaveValue('32');
 
-		// Nothing was created.
 		await page.goto('/service/');
 		await expect(main(page).getByRole('heading', { name: 'Zatím tu nemáte žádnou službu' })).toBeVisible();
 	});
@@ -71,7 +53,6 @@ test.describe('Services (Phase 2)', () => {
 		await page.getByLabel('Název').fill('Netflix');
 		await page.getByLabel('Částka (Kč)').fill('199,50');
 		await page.getByLabel('Den splatnosti').fill('15');
-		// Period defaults to "Měsíčně" — left as is.
 		await page.getByRole('button', { name: 'Uložit' }).click();
 
 		await expect(page).toHaveURL(/\/service\/(\?.*)?$/);
@@ -87,8 +68,6 @@ test.describe('Services (Phase 2)', () => {
 	test('switching period to yearly reveals the month field (pure CSS) and the service lists a full due date', async ({ page }) => {
 		await main(page).getByRole('link', { name: 'Přidat službu' }).click();
 
-		// The "Měsíc splatnosti" field is hidden while the default monthly period is selected —
-		// selecting "Ročně" must actually reveal it (CSS :has() progressive disclosure, no JS).
 		const monthField = page.getByLabel('Měsíc splatnosti');
 		await expect(monthField).toBeHidden();
 
@@ -110,14 +89,9 @@ test.describe('Services (Phase 2)', () => {
 	});
 
 	test('editing a monthly service updates the amount in the list', async ({ page }) => {
-		// KNOWN APP BUG (reported): opening the edit form of a MONTHLY service throws
-		// Nette\InvalidArgumentException — ServicePresenter::createComponentServiceForm()
-		// coalesces the NULL due_month to '' but the select (setPrompt) only accepts null.
-		// This test encodes the correct expected behavior and stays red until that is fixed.
 		await serviceRow(page, 'Netflix').getByRole('link', { name: 'Upravit' }).click();
 
 		await expect(main(page).getByRole('heading', { name: 'Upravit službu' })).toBeVisible();
-		// The form is prefilled with the stored value.
 		await expect(page.getByLabel('Částka (Kč)')).toHaveValue('199,50');
 
 		await page.getByLabel('Částka (Kč)').fill('249');
@@ -133,8 +107,6 @@ test.describe('Services (Phase 2)', () => {
 		await expect(items.first()).toContainText('Netflix');
 		await expect(items.last()).toContainText('Doména');
 
-		// Manual reordering (↑/↓) was replaced by automatic due-day sorting (see
-		// 91-service-auto-sort.spec.js) — no arrow buttons of any kind remain on the cards.
 		await expect(main(page).getByRole('button', { name: /Posunout/ })).toHaveCount(0);
 		await expect(main(page).getByText('↑', { exact: true })).toHaveCount(0);
 		await expect(main(page).getByText('↓', { exact: true })).toHaveCount(0);
@@ -142,7 +114,6 @@ test.describe('Services (Phase 2)', () => {
 		await expect(main(page).getByRole('link', { name: 'Upravit' })).toHaveCount(2);
 		await expect(main(page).getByRole('button', { name: 'Archivovat' })).toHaveCount(2);
 
-		// The (automatic) order is stable across a reload.
 		await page.reload();
 		await expect(items.first()).toContainText('Netflix');
 		await expect(items.last()).toContainText('Doména');
@@ -152,16 +123,13 @@ test.describe('Services (Phase 2)', () => {
 		await serviceRow(page, 'Doména').getByRole('button', { name: 'Archivovat' }).click();
 
 		await expect(page.getByRole('status')).toHaveText('Služba byla archivována.');
-		// Gone from the active list (active names are edit links, archived names are plain text).
 		await expect(main(page).getByRole('link', { name: 'Doména', exact: true })).toHaveCount(0);
 
-		// The archive is a collapsed <details> with a count — open it.
 		const archive = main(page).locator('details');
 		await main(page).getByText('Archiv (1)').click();
 		const archivedName = archive.getByText('Doména');
 		await expect(archivedName).toBeVisible();
 
-		// Muted rendering: the archived name is noticeably lighter than regular stone-900 text.
 		const color = parseColor(await archivedName.evaluate((el) => getComputedStyle(el).color));
 		expect(color.lightness).toBeGreaterThan(0.4);
 
@@ -169,7 +137,6 @@ test.describe('Services (Phase 2)', () => {
 
 		await expect(page.getByRole('status')).toHaveText('Služba byla obnovena.');
 		await expect(main(page).getByRole('link', { name: 'Doména', exact: true })).toBeVisible();
-		// No archived services left — the archive section disappears entirely.
 		await expect(main(page).getByText('Archiv (', { exact: false })).toHaveCount(0);
 	});
 

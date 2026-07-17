@@ -1,25 +1,8 @@
-/*
- * Kamto — Tailwind v4 entry point.
- * Build: `npm run css` (minified) / `npm run css:watch` (watch mode), both run against
- * `www/css/app.css`. See package.json + CLAUDE.md ("Design") for the docker-run invocation.
- */
-
 @import "tailwindcss";
 
-/* Make sure Tailwind scans Latte templates for utility classes — automatic content
-   detection should already reach them, but we pin it down explicitly to be safe. */
 @source "../../app";
 
 @theme {
-	/*
-	 * Accent — "copper/terracotta" scale, the single brand accent color (buttons, links,
-	 * focus rings, flash/info backgrounds). Neutral base stays on Tailwind's built-in
-	 * `stone` scale (bg/text/borders) — no custom gray tokens needed.
-	 *
-	 * Contrast checked against white (#fff) — accent-600/700 both clear WCAG AA (4.5:1)
-	 * for text/buttons; accent-500 and lighter are for borders, rings, and tinted
-	 * backgrounds only (never white text on them).
-	 */
 	--color-accent-50: #fbf0e6;
 	--color-accent-100: #f6dfc9;
 	--color-accent-200: #eac29c;
@@ -28,33 +11,19 @@
 	--color-accent-600: #a6501f;
 	--color-accent-700: #7f3d18;
 
-	/* Bespoke radius for the primary "card" surfaces (login card etc.), on top of
-	   Tailwind's default rounded-lg/xl/2xl scale used everywhere else. */
 	--radius-card: 1.25rem;
 }
 
-/*
- * Tailwind Preflight nuluje margin na všech prvcích, čímž modální <dialog> ztrácí UA
- * centrování (margin: auto v UA stylesheetu) a lepí se do levého horního rohu viewportu.
- * Vracíme výchozí chování prohlížeče — dialogy používáme jen přes showModal().
- */
 @layer base {
 	dialog {
 		margin: auto;
 	}
 
-	/* Tailwind v4 nechává tlačítkům cursor: default (změna oproti v3) — interaktivní tlačítka
-	   mají mít pacičku jako odkazy (Odhlásit se, Zaplaceno, Upravit…). */
 	button:not(:disabled) {
 		cursor: pointer;
 	}
 }
 
-/*
- * Small shared component classes (Phase 2) — form controls and buttons repeat across
- * Sign/Service/Category templates, so the recurring utility soups live here. Deliberately
- * a tiny set (inputs + buttons + one segmented control), not a component library.
- */
 @layer components {
 	.field-label {
 		@apply mb-1.5 block text-sm font-medium text-stone-700;
@@ -68,11 +37,6 @@
 		@apply w-full rounded-xl border border-stone-300 bg-white px-3.5 py-2.5 text-stone-900 shadow-sm transition placeholder:text-stone-400 focus:border-accent-500 focus:outline-none focus:ring-2 focus:ring-accent-200;
 	}
 
-	/*
-	 * .select — vychází z .input (stejné rozměry/border/focus), ale pro nativní <select>:
-	 * appearance-none skryje OS šipku, nahradí ji vlastní SVG chevron (barva ladí se
-	 * stone-500), right-aligned s prostorem v pr-10.
-	 */
 	.select {
 		@apply w-full appearance-none rounded-xl border border-stone-300 bg-white bg-no-repeat py-2.5 pl-3.5 pr-10 text-stone-900 shadow-sm transition focus:border-accent-500 focus:outline-none focus:ring-2 focus:ring-accent-200;
 		background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%2378716c' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
@@ -96,7 +60,6 @@
 		@apply inline-flex h-8 w-8 items-center justify-center rounded-lg text-stone-400 transition hover:bg-stone-100 hover:text-stone-700 focus:outline-none focus:ring-2 focus:ring-accent-200;
 	}
 
-	/* Segmented control (radio group rendered as a pill row, e.g. the period field). */
 	.segment-option {
 		@apply flex cursor-pointer select-none items-center justify-center rounded-lg px-3 py-2 text-sm font-medium text-stone-500 transition;
 	}
@@ -109,11 +72,6 @@
 		@apply ring-2 ring-accent-300;
 	}
 
-	/*
-	 * Progressive disclosure without JS: fields wrapped in .yearly-only show only while
-	 * the "yearly" period radio is checked (pure CSS :has(), baseline in all browsers).
-	 * Server-side validation stays authoritative — this is a display concern only.
-	 */
 	.yearly-only {
 		display: none;
 	}
@@ -122,13 +80,6 @@
 		display: block;
 	}
 
-	/*
-	 * Klouzavá služba (Increment 2) — stejný :has() princip jako .yearly-only výše, bez JS:
-	 *   1) .monthly-only — checkbox "Klouzavá" dává smysl jen pro měsíční periodu, u roční se schová.
-	 *   2) .due-day-field se schová JEN v kombinaci měsíční + klouzavá zaškrtnutá — u roční musí
-	 *      den splatnosti zůstat vždy viditelný, i kdyby zaškrtnutí zůstalo v (skrytém) DOM.
-	 * Server je zdroj pravdy nezávisle na zobrazení (viz ServicePresenter::serviceFormSucceeded()).
-	 */
 	.monthly-only {
 		display: none;
 	}
@@ -141,26 +92,15 @@
 		display: none;
 	}
 
-	/* Nativní checkbox — velikost sladěná s ostatními ovládacími prvky, accent-color naváže
-	   zaškrtnutí na brand barvu (bez @tailwindcss/forms pluginu, prostá CSS vlastnost). */
 	.checkbox {
 		@apply h-4 w-4 shrink-0 cursor-pointer rounded border-stone-300 focus:outline-none focus:ring-2 focus:ring-accent-200 focus:ring-offset-0;
 		accent-color: var(--color-accent-600);
 	}
 
-	/* Malý akcentní štítek (copper) — stav nese text, ne jen barvu (např. "Klouzavá"). */
 	.badge-accent {
 		@apply inline-flex items-center rounded-full bg-accent-100 px-2 py-0.5 text-xs font-medium text-accent-700;
 	}
 
-	/*
-	 * Iniciála služby — avatar tintovaný barvou kategorie: --c dosazuje šablona přes style
-	 * atribut (hex validovaný v CategoryDisplay::resolve(), proto bezpečný |noescape).
-	 * Bez --c padá na stone-400 → vizuálně neutrální šedý avatar (služba bez kategorie,
-	 * archiv). Poměry mixu ověřeny: text ≥4.5:1 vůči podkladu pro celý whitelist
-	 * CategoryPresenter::Palette. Velikost (h-10, w-10, text-sm…) dodává volající utilitami;
-	 * stavové utility (bg-red-100, opacity-60) tint přebijí — stav > dekorace.
-	 */
 	.avatar-initial {
 		@apply flex shrink-0 items-center justify-center rounded-xl font-semibold;
 		--c: var(--color-stone-400);
@@ -168,12 +108,6 @@
 		color: color-mix(in srgb, var(--c) 62%, var(--color-stone-900));
 	}
 
-	/*
-	 * Heatmapa (ruční CSS grid, Fáze 4) — 13 sloupců: název (sticky) + 12 měsíců. Řádky mají
-	 * `display:contents` (viz `.contents` v šabloně), takže buňky padají přímo do této mřížky
-	 * a přitom si drží sémantiku role="row". Měsíční sloupce jsou minmax(…, 1fr): na širokém
-	 * plátně vyplní kartu, na mobilu se scrolluje jen kontejner (ne tělo stránky).
-	 */
 	.heatmap-grid {
 		display: grid;
 		grid-template-columns: 9.5rem repeat(12, minmax(1.75rem, 1fr));
@@ -185,12 +119,10 @@
 		@apply flex items-center justify-center;
 	}
 
-	/* Vlastní dlaždice stavu — čtvercová, kategorie barvu dostane inline (Paid/Skipped). */
 	.hm-box {
 		@apply flex aspect-square w-full max-w-7 items-center justify-center rounded-[4px] text-[0.6rem] leading-none;
 	}
 
-	/* Šrafování pro Skipped — rozlišení „přeskočeno" i bez barvy (překryv přes kategorii). */
 	.hm-hatch {
 		background-image: repeating-linear-gradient(
 			45deg,

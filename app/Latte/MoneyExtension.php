@@ -7,7 +7,6 @@ namespace App\Latte;
 use App\Support\Money;
 use Latte\Extension;
 
-/** Latte filtr `|czk` — formátování haléřů na čitelnou částku, viz App\Support\Money. */
 final class MoneyExtension extends Extension
 {
 	/** @return array<string, callable> */

@@ -8,11 +8,6 @@ use PDO;
 use PDOStatement;
 use Throwable;
 
-/**
- * PDO-backed implementace Db brány — lokální/dev default (`var/kamto.db`) a přenositelný
- * fallback pro jakýkoli hosting s obyčejným souborovým systémem (bez libSQL extension).
- * Primární driver pro produkci je LibsqlDb (Bunny, Fáze 6).
- */
 final class PdoSqliteDb implements Db
 {
 	private readonly PDO $pdo;
@@ -62,8 +57,6 @@ final class PdoSqliteDb implements Db
 
 	public function executeScript(string $sql): void
 	{
-		// PDO_SQLite's exec() (unlike PDO_MySQL) runs `;`-separated multi-statement scripts
-		// in one call — no PDO::MYSQL_ATTR_MULTI_STATEMENTS equivalent needed.
 		$this->pdo->exec($sql);
 	}
 

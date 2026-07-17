@@ -7,29 +7,15 @@
 	<meta name="theme-color" content="#ffffff">
 	<link rel="stylesheet" href="/css/app.css">
 	<link rel="manifest" href="/manifest.json">
-	{* Favicon = logotyp na průhledném pozadí (gitlabí styl) — Safari kreslí tmavý obrys jen
-	   kolem favicon se světlou neprůhlednou destičkou, průhledný glyf obrys nedostane a světlý
-	   podklad dodá sám tab bar. PNG, ne SVG: logotyp je <text> a jeho podoba by závisela na
-	   fontech prohlížeče (viz icons/favicon.svg). *}
 	<link rel="icon" href="/icons/favicon.png" type="image/png">
 	<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
-	{* Veškerý klientský JS je v jednom externím souboru (žádný inline <script> → CSP script-src 'self'). *}
 	<script src="/js/app.js" defer></script>
 </head>
 <body class="min-h-dvh bg-stone-50 font-sans text-stone-900 antialiased">
 {if $user->isLoggedIn()}
-	{* Skip-link: skrytý, zviditelní se na focus (klávesnice), skočí na hlavní obsah. *}
 	<a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-white focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-stone-900 focus:shadow-md focus:ring-2 focus:ring-accent-300">Přeskočit na obsah</a>
-	{* Chrome přihlášené aplikace: hlavička s navigací + centralizované flash zprávy.
-	   Sign/in si obsah (včetně flashů uvnitř karty) vykresluje celý sám — viz else větev. *}
 	<header class="border-b border-stone-200 bg-white">
-		{* Mobile-first: logo + Odhlásit se na prvním řádku, navigace se zabalí na vlastní řádek
-		   pod ně (nav = w-full, order-3). Od sm: jeden řádek (logo · nav · … · Odhlásit se) přes
-		   order utility. Nikdy nepřeteče viewport → tělo stránky nescrolluje vodorovně. *}
 		<div class="mx-auto flex max-w-3xl flex-wrap items-center gap-x-2 gap-y-2 px-4 py-3 sm:flex-nowrap sm:px-6">
-			{* Logotyp „kamto" + tečky-měsíce (4 kategorie + čárkovaná pauza) — stejná značka jako
-			   ikona aplikace (icons/icon.svg, návrh 13). Inline hex: plné tečky z whitelistu
-			   CategoryPresenter::Palette, čárkovaná pauza accent-300. *}
 			<a n:href="Home:default" class="order-1 flex flex-col items-start gap-1 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-200">
 				<span class="text-base font-bold leading-none tracking-tight text-accent-700">kamto</span>
 				<span class="flex items-center gap-1" aria-hidden="true">
@@ -60,7 +46,6 @@
 					>Kategorie</a>
 				</div>
 			</nav>
-			{* Odhlášení mění stav → POST formulář (same-origin CSRF ochrana), viz SignPresenter::actionOut(). *}
 			<form method="post" action="{link Sign:out}" class="order-2 ml-auto sm:order-3">
 				<button type="submit" class="btn-ghost">Odhlásit se</button>
 			</form>

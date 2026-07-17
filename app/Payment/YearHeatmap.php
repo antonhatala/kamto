@@ -6,17 +6,12 @@ namespace App\Payment;
 
 use DateTimeImmutable;
 
-/**
- * Čistá agregace roční heatmapy — pro každou relevantní službu 12 buněk (leden–prosinec)
- * s odvozeným stavem plateb. Žádná DB ani „dnes" zevnitř — vše přichází argumentem (viz
- * OverviewPresenter), jednotkově testovatelné (YearHeatmapTest).
- */
 final class YearHeatmap
 {
 	/**
-	 * @param list<array<string, mixed>> $services VŠECHNY služby vč. archivovaných (ServiceRepository::findAll(true))
-	 * @param list<array<string, mixed>> $payments platby roku (PaymentRepository::findByYear)
-	 * @param list<array<string, mixed>> $categories (CategoryRepository::findAll)
+	 * @param list<array<string, mixed>> $services
+	 * @param list<array<string, mixed>> $payments
+	 * @param list<array<string, mixed>> $categories
 	 */
 	public static function build(
 		int $year,
@@ -31,7 +26,6 @@ final class YearHeatmap
 			$categoriesById[(int) $category['id']] = $category;
 		}
 
-		// Index plateb [service_id][period_month] — buňky se skládají bez N+1 dotazu.
 		/** @var array<int, array<int, array<string, mixed>>> $paymentsByServiceAndMonth */
 		$paymentsByServiceAndMonth = [];
 		foreach ($payments as $payment) {
@@ -43,13 +37,8 @@ final class YearHeatmap
 			$serviceId = (int) $service['id'];
 			$isArchived = (int) $service['is_archived'] === 1;
 			$hasPaymentsInYear = isset($paymentsByServiceAndMonth[$serviceId]);
-			// created_at je ISO 8601 (date(DATE_ATOM), viz ServiceRepository::insert) — rok jsou
-			// vždy první 4 znaky, bez potřeby DateTimeImmutable::createFromFormat.
 			$createdYear = (int) substr((string) $service['created_at'], 0, 4);
 
-			// Zobrazit když má aspoň 1 platbu v roce (i archivovaná služba — historická pravda),
-			// NEBO je aktivní a existovala už k danému roku. Archivovaná bez plateb v roce a
-			// služba vzniklá až po $year se skrývá.
 			if (!$hasPaymentsInYear && ($isArchived || $createdYear > $year)) {
 				continue;
 			}
@@ -72,8 +61,6 @@ final class YearHeatmap
 			);
 		}
 
-		// Automatické řazení (viz CLAUDE.md) — konzistentní se seznamem služeb
-		// (ServiceRepository::findAll/findArchived): neklouzavé dle due_day, klouzavé na konci.
 		usort(
 			$rows,
 			static fn(HeatmapRow $a, HeatmapRow $b): int

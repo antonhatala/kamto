@@ -4,10 +4,6 @@ declare(strict_types=1);
 
 namespace App\Payment;
 
-/**
- * Výsledek agregace dashboardu za jedno období — položky rozdělené do sekcí + součty.
- * Sekce mají pevné klíče (žebříček stavů); přeskočené jsou mimo oba součty.
- */
 final class OverviewResult
 {
 	/**
@@ -17,8 +13,8 @@ final class OverviewResult
 	 *     paid: list<DashboardItem>,
 	 *     skipped: list<DashboardItem>,
 	 * } $sections
-	 * @param int $remainingTotal součet nezaplacených (po splatnosti + naplánováno), haléře
-	 * @param int $paidTotal součet zaplacených, haléře
+	 * @param int $remainingTotal
+	 * @param int $paidTotal
 	 */
 	public function __construct(
 		public readonly array $sections,

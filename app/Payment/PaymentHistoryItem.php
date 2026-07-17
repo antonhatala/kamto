@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Payment;
 
-/** Jeden řádek historie plateb služby (detail služby) — viz ServiceHistory::build. */
 final class PaymentHistoryItem
 {
 	public function __construct(

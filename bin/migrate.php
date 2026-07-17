@@ -8,7 +8,6 @@ use App\Database\MigrationRunner;
 
 require __DIR__ . '/../vendor/autoload.php';
 
-// Headless CLI — bootstrapuje jen DI container kvůli Db, žádné HTTP.
 $container = Bootstrap::boot()->createContainer();
 $db = $container->getByType(Db::class);
 

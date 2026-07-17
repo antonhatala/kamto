@@ -15,8 +15,6 @@
 				{foreach $palette as $color => $colorName}
 					<label class="relative cursor-pointer" title="{$colorName}">
 						<input n:name="color:$color" class="peer sr-only">
-						{* |noescape: Latte by v style atributu escapoval „#" na „\#" → neplatné CSS.
-						   Bezpečné — $palette jsou serverové konstanty (CategoryPresenter::Palette). *}
 						<span class="block h-10 w-10 rounded-xl shadow-sm ring-offset-2 transition peer-checked:ring-2 peer-checked:ring-stone-800 peer-focus-visible:ring-2 peer-focus-visible:ring-accent-500" style="background-color: {$color|noescape}" aria-hidden="true"></span>
 						<svg class="pointer-events-none absolute inset-0 m-auto h-5 w-5 text-white opacity-0 drop-shadow transition peer-checked:opacity-100" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
 							<path stroke-linecap="round" stroke-linejoin="round" d="M5 10.5l3.5 3.5L15 7" />

@@ -1,6 +1,3 @@
-// Login page rendering: real CSS applied (not just markup), form shape, and the
-// no-dark-mode / focus-indicator accessibility sanity checks from the Phase 0 acceptance
-// criteria.
 const { test, expect } = require('@playwright/test');
 const { gotoLogin, parseColor, waitForTransitionEnd } = require('./helpers');
 
@@ -18,13 +15,9 @@ test.describe('Login page rendering', () => {
 		expect(cssStatuses).toContain(200);
 		expect(cssStatuses).not.toContain(404);
 
-		// accent-600 (#a6501f) is the app's branded button color — a plain unstyled <button>
-		// would render in the browser's default control color, so this proves Tailwind's
-		// output actually applied rather than the template rendering bare HTML.
 		const button = page.getByRole('button', { name: 'Přihlásit se' });
 		await expect(button).toHaveCSS('background-color', 'rgb(166, 80, 31)');
 
-		// The login card uses the bespoke `rounded-card` radius token, not a default 0.
 		const card = page.locator('.rounded-card');
 		const radius = await card.evaluate((el) => getComputedStyle(el).borderRadius);
 		expect(radius).not.toBe('0px');
@@ -38,7 +31,6 @@ test.describe('Login page rendering', () => {
 		await expect(form.locator('input[type=password]')).toHaveCount(1);
 		await expect(form.getByRole('button')).toHaveCount(1);
 
-		// Nette's CSRF protection field, added via Form::addProtection().
 		const csrfToken = form.locator('input[type=hidden][name="_token_"]');
 		await expect(csrfToken).toHaveAttribute('value', /.+/);
 	});
@@ -47,11 +39,6 @@ test.describe('Login page rendering', () => {
 		await gotoLogin(page);
 		const password = page.getByLabel('Heslo');
 
-		// The field carries `autofocus`, which can win the race and already be focused by the
-		// time we read "before" — blur it first for a deterministic unfocused baseline. Both
-		// states also animate in via a CSS `transition`, so wait each one out before reading
-		// computed style — otherwise an in-flight interpolated value can be sampled instead of
-		// the settled one (and, coincidentally, look identical on both sides).
 		await password.evaluate((el) => el.blur());
 		await waitForTransitionEnd(password);
 
@@ -77,8 +64,6 @@ test.describe('Login page rendering', () => {
 
 		const bodyBg = parseColor(await page.evaluate(() => getComputedStyle(document.body).backgroundColor));
 
-		// bg-stone-50 (~#fafaf9) — a light background (lightness close to 1) regardless of the
-		// OS color-scheme preference; a real dark-mode background would score well below this.
 		expect(bodyBg.lightness).toBeGreaterThan(0.85);
 	});
 });

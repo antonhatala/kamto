@@ -13,29 +13,21 @@ $today = new DateTimeImmutable('2026-07-08');
 $monthly = ['period' => 'monthly', 'due_month' => null];
 $yearly = ['period' => 'yearly', 'due_month' => 6];
 
-// Roční služba mimo svůj due_month a BEZ payment řádku -> Inactive (měsíc pro ni neexistuje).
 $inactive = PaymentCell::build($yearly, 2026, 5, null, $today);
 Assert::same(CellState::Inactive, $inactive->state);
 Assert::null($inactive->amount);
 Assert::same(2026, $inactive->periodYear);
 Assert::same(5, $inactive->periodMonth);
 
-// QA#1 — „osiřelá" platba: roční služba má dnes due_month 6, ale existuje zaplacená platba za
-// květen (perioda/due_month se změnily po zaplacení). Payment řádek je ground truth -> buňka
-// se odvodí z platby (Paid), NE Inactive — jinak by z heatmapy zmizela, ale v seznamu plateb
-// detailu by byla (nesoulad uvnitř stránky).
 $orphan = PaymentCell::build($yearly, 2026, 5, [
 	'due_date' => '2026-05-15', 'paid_date' => '2026-05-10', 'skipped_at' => null, 'amount' => 60000,
 ], $today);
 Assert::same(CellState::Paid, $orphan->state);
 Assert::same(60000, $orphan->amount);
 
-// Žádný payment řádek (a měsíční služba, nebo roční ve svém due_month) -> Gap, ne virtuální
-// dopočet (na rozdíl od MonthlyOverview) — "mezera" je vždy klidná pauza.
 Assert::same(CellState::Gap, PaymentCell::build($monthly, 2026, 4, null, $today)->state);
 Assert::same(CellState::Gap, PaymentCell::build($yearly, 2026, 6, null, $today)->state);
 
-// Existující řádek -> žebříček přes PaymentStatus::derive, převedený na CellState.
 $paid = PaymentCell::build($monthly, 2026, 1, [
 	'due_date' => '2026-01-15', 'paid_date' => '2026-01-10', 'skipped_at' => null, 'amount' => 10000,
 ], $today);
@@ -47,8 +39,6 @@ $skipped = PaymentCell::build($monthly, 2026, 2, [
 ], $today);
 Assert::same(CellState::Skipped, $skipped->state);
 
-// Po splatnosti — striktně due_date < dnes (v den splatnosti ještě Planned, stejná hranice
-// jako PaymentStatus::derive).
 $overdue = PaymentCell::build($monthly, 2026, 3, [
 	'due_date' => '2026-07-07', 'paid_date' => null, 'skipped_at' => null, 'amount' => 5000,
 ], $today);
@@ -64,18 +54,14 @@ $plannedFuture = PaymentCell::build($monthly, 2026, 8, [
 ], $today);
 Assert::same(CellState::Planned, $plannedFuture->state);
 
-// Klouzavá služba (is_sliding=1) s nezaplaceným payment řádkem v dávno minulém měsíci ->
-// NIKDY Overdue (jen Planned), na rozdíl od běžné služby výše.
 $slidingMonthly = ['period' => 'monthly', 'due_month' => null, 'is_sliding' => 1];
 $slidingOverdueCandidate = PaymentCell::build($slidingMonthly, 2026, 3, [
 	'due_date' => '2026-03-07', 'paid_date' => null, 'skipped_at' => null, 'amount' => 5000,
 ], $today);
 Assert::same(CellState::Planned, $slidingOverdueCandidate->state);
 
-// Klouzavá služba bez payment řádku -> stejně Gap jako běžná (žádná změna v nepřítomnosti řádku).
 Assert::same(CellState::Gap, PaymentCell::build($slidingMonthly, 2026, 4, null, $today)->state);
 
-// CellState::fromPaymentStatus — přímý 1:1 převod pro všechny 4 stavy platby.
 Assert::same(CellState::Paid, CellState::fromPaymentStatus(App\Payment\PaymentStatus::Paid));
 Assert::same(CellState::Skipped, CellState::fromPaymentStatus(App\Payment\PaymentStatus::Skipped));
 Assert::same(CellState::Overdue, CellState::fromPaymentStatus(App\Payment\PaymentStatus::Overdue));

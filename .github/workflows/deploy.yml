@@ -1,24 +1,18 @@
 name: CI & Deploy
 
-# Push na main = full pipeline (test → build image → push GHCR → redeploy Bunny).
-# Pull request = jen testy (žádný build/deploy).
 on:
   push:
     branches: [main]
   pull_request:
 
-# Serializace deployů: nový push na main POČKÁ, až doběhne rozběhnutý deploy — nepřerušuje ho
-# (cancel-in-progress: false = fronta, ne cancel; bezpečnější pro redeploy stejného kontejneru).
 concurrency:
   group: deploy-${{ github.ref }}
   cancel-in-progress: false
 
-# Default token pro VŠECHNY joby = jen čtení repa (least-privilege); deploy job si scope zvyšuje.
 permissions:
   contents: read
 
 jobs:
-  # --- Testy: PHPStan + nette/tester (shodné s `composer test`) ---
   test:
     runs-on: ubuntu-latest
     steps:
@@ -34,14 +28,13 @@ jobs:
       - name: Test (PHPStan + Tester)
         run: composer test
 
-  # --- Build produkčního image + push do GHCR + redeploy na Bunny (jen main) ---
   deploy:
     needs: test
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      packages: write        # push do ghcr.io přes automatický GITHUB_TOKEN (žádný ruční PAT)
+      packages: write
     steps:
       - uses: actions/checkout@v7
 
@@ -55,7 +48,6 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # GitHub runnery jsou amd64 → build je nativní (žádná emulace jako lokálně).
       - name: Build & push production image
         uses: docker/build-push-action@v7
         with:
@@ -69,11 +61,6 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      # Explicitní trigger — pushnout image Bunny nestačí, musí se říct „vytáhni nový tag".
-      # api_key/app_id jsou repo secrets (přidáš je ty; já je nikdy nevidím). Container name
-      # MUSÍ přesně sedět s názvem kontejneru v Bunny appce (dole v runbooku: `kamto`).
-      # Pinnuto na commit SHA (= v0.2.2) místo @main: action vidí BUNNY_API_KEY, takže moving ref
-      # by byl supply-chain vektor (bezpečnostní review). SHA bumpuj vědomě při aktualizaci.
       - name: Redeploy on Bunny Magic Containers
         uses: BunnyWay/actions/container-update-image@671d620bdaac002d2aa7f3dd0dda03dd99c5b749
         with:

@@ -1,5 +1,3 @@
-// Session/guard behaviour: unauthenticated users get bounced to the login page, and logging
-// out actually ends the session rather than just changing what's displayed.
 const { test, expect } = require('@playwright/test');
 const { login, logout, pathOf } = require('./helpers');
 
@@ -25,7 +23,6 @@ test.describe('Auth guard', () => {
 		await logout(page);
 		await expect(page.getByText('Byli jste odhlášeni.')).toBeVisible();
 
-		// The session is gone — the protected pages bounce back to login again.
 		await page.goto('/');
 		expect(pathOf(page)).toBe('/sign/in');
 	});

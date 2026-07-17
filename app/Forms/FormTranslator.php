@@ -7,16 +7,8 @@ namespace App\Forms;
 use Nette\Localization\Translator;
 use Stringable;
 
-/**
- * Přeloží vestavěné (anglické) validační hlášky Nette Forms do češtiny. UI je jen česky,
- * ale některá pravidla (`:integer`, výběr mimo nabídku, …) nemají vlastní zprávu a Nette by
- * jinak zobrazilo anglický default. Vlastní (už české) hlášky projdou beze změny.
- *
- * Placeholdery `%d`/`%s` se dosazují až po překladu, proto je český text zachovává.
- */
 final class FormTranslator implements Translator
 {
-	/** Anglický default (viz Nette\Forms\Validator::$messages) → český překlad. */
 	private const array Messages = [
 		'This field is required.' => 'Toto pole je povinné.',
 		'This field should be blank.' => 'Toto pole musí být prázdné.',

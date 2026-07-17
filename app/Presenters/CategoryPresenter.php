@@ -9,12 +9,8 @@ use App\Model\CategoryRepository;
 use Nette\Application\Attributes\Requires;
 use Nette\Application\UI\Form;
 
-/** CRUD kategorií — pevná paleta barev (whitelist validovaná na serveru), Fáze 2. */
 final class CategoryPresenter extends SecuredPresenter
 {
-	/** Pevná paleta swatchů — barvy zvolené jako kategoriální paleta harmonická se stone/terracotta
-	 * tokeny (CVD-bezpečné pořadí, viz dataviz skill); FE může finální odstíny doladit, ale vždy
-	 * jen z tohoto serverového whitelistu. */
 	private const array Palette = [
 		'#c1622e' => 'Terakotová',
 		'#2168a3' => 'Modrá',
@@ -26,7 +22,7 @@ final class CategoryPresenter extends SecuredPresenter
 		'#188f77' => 'Petrolejová',
 	];
 
-	/** @var array<string, mixed>|null Editovaná kategorie (null v `add`), viz actionEdit(). */
+	/** @var array<string, mixed>|null */
 	private ?array $editedCategory = null;
 
 	public function __construct(
@@ -39,9 +35,6 @@ final class CategoryPresenter extends SecuredPresenter
 	{
 		$categories = $this->categoryRepository->findAll();
 
-		// N+1 dotaz (countServices na kategorii) je tu záměrně akceptovaný: kategorií jsou
-		// jednotky, ne stovky, a přidávat kvůli jednomu řádku šablony další GROUP BY repo
-		// metodu jen pro tento seznam by byla zbytečná abstrakce navíc (YAGNI).
 		$this->template->categories = array_map(
 			fn(array $category): array => $category + [
 				'serviceCount' => $this->categoryRepository->countServices((int) $category['id']),
@@ -83,8 +76,6 @@ final class CategoryPresenter extends SecuredPresenter
 		$this->template->serviceCount = $this->categoryRepository->countServices($id);
 	}
 
-	// Smazání mění stav → jen POST signál (automatická same-origin ochrana Nette pro
-	// `handle*` metody). GET Category:delete jen zobrazí potvrzení (viz actionDelete výše).
 	#[Requires(methods: 'POST')]
 	public function handleDelete(int $id): void
 	{
@@ -92,7 +83,6 @@ final class CategoryPresenter extends SecuredPresenter
 			$this->error('Kategorie nenalezena.');
 		}
 
-		// service.category_id SET NULL řeší FK v DB (ON DELETE SET NULL, viz migrations/001_init.sql).
 		$this->categoryRepository->delete($id);
 		$this->flashMessage('Kategorie byla smazána.');
 		$this->redirect('Category:default');
@@ -133,7 +123,6 @@ final class CategoryPresenter extends SecuredPresenter
 		];
 
 		if ($this->editedCategory !== null) {
-			// Editace neměří sort_order.
 			$data['sort_order'] = (int) $this->editedCategory['sort_order'];
 			$this->categoryRepository->update((int) $this->editedCategory['id'], $data);
 			$this->flashMessage('Kategorie byla upravena.');

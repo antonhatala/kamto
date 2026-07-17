@@ -8,25 +8,17 @@ use App\Support\Money;
 use App\Support\Months;
 use DateTimeImmutable;
 
-/**
- * Čistá agregace řádků CSV exportu historie plateb za rok (Fáze 5) — stejný vzor jako
- * YearSummary/YearHeatmap: žádná DB, "dnes" vždy argumentem, jednotkově testovatelné s
- * fixture poli. Výstup je už hotová `list<list<string>>` pro App\Export\CsvExporter — ten
- * sám o sobě neví nic o platbách/službách, jen skládá CSV string (a řeší injection/BOM/CRLF).
- */
 final class PaymentExport
 {
-	/** Hlavička sloupců (česky) — sdílená mezi buildRows() a voláním CsvExporter::export(). */
 	public const array Header = [
 		'Služba', 'Kategorie', 'Rok', 'Měsíc', 'Splatnost', 'Zaplaceno', 'Stav', 'Částka (Kč)',
 	];
 
 	/**
-	 * @param list<array<string, mixed>> $services VŠECHNY služby vč. archivovaných (ServiceRepository::findAll(true))
-	 * @param list<array<string, mixed>> $payments platby roku (PaymentRepository::findByYear) — pořadí
-	 *     (period_month, service_id) z repozitáře se do řádků přenáší beze změny.
-	 * @param list<array<string, mixed>> $categories (CategoryRepository::findAll)
-	 * @return list<list<string>> řádky bez hlavičky, po jedné platbě
+	 * @param list<array<string, mixed>> $services
+	 * @param list<array<string, mixed>> $payments
+	 * @param list<array<string, mixed>> $categories
+	 * @return list<list<string>>
 	 */
 	public static function buildRows(
 		DateTimeImmutable $today,
@@ -48,9 +40,6 @@ final class PaymentExport
 
 		$rows = [];
 		foreach ($payments as $payment) {
-			// Obranná pojistka jako YearSummary/CategoryDisplay — FK CASCADE/SET NULL prakticky
-			// vylučuje "osiřelou" platbu/kategorii, ale buildRows() se na to nespoléhá a na
-			// chybějící řádek nespadne.
 			$service = $servicesById[(int) $payment['service_id']] ?? null;
 			$categoryRow = null;
 			if ($service !== null && $service['category_id'] !== null) {

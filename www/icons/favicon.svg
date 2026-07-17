@@ -1,13 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-  Kamto favicon (záložka prohlížeče) — logotyp „kamto" + tečky na PRŮHLEDNÉM pozadí
-  (gitlabí styl). Safari kreslí tmavý obrys kolem favicon se světlou neprůhlednou
-  „destičkou" (splývá s tab barem); průhledný glyf destičku nemá → žádný obrys, a světlé
-  pozadí dodá sám tab bar, takže výsledek odpovídá návrhu 13. Wordmark accent-600
-  (o stupeň světlejší než accent-700 v ikoně — ať zůstane čitelný i na tmavém tab baru),
-  logotyp přes celou šířku (bez destičky není potřeba vnitřní okraj).
-  Rasterizace: favicon.png (64 px), vyžaduje font Inter (viz icon.svg).
--->
 <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="Kamto">
 	<text x="256" y="212" font-family="Inter, 'SF Pro Text', -apple-system, 'Liberation Sans', system-ui, sans-serif"
 		font-size="150" font-weight="700" letter-spacing="-3.5" fill="#a6501f"

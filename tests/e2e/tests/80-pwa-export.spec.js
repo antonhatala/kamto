@@ -1,13 +1,3 @@
-// Phase 5 — PWA & UX: the web app manifest, the service worker (availability, registration, and
-// the security invariant that authenticated HTML must NEVER end up in the Cache Storage), the
-// offline fallback page, CSV export, and the accessibility additions (skip-link, aria-current).
-//
-// Service worker isolation: every other spec file in this suite runs with `serviceWorkers:
-// 'block'` (see playwright.config.js) so a caching SW can never leak state between tests or make
-// an unrelated spec order-dependent. This file is the one deliberate exception — it opts back in
-// file-wide via `test.use({ serviceWorkers: 'allow' })` because it's the only place that actually
-// needs a live service worker. Each test still gets its own fresh, isolated BrowserContext (the
-// Playwright default), so nothing here leaks into the blocked-by-default specs either way.
 const fs = require('fs');
 const { test, expect } = require('@playwright/test');
 const { login, logout } = require('./helpers');
@@ -15,16 +5,12 @@ const { resetDb } = require('../reset-db');
 
 test.use({ serviceWorkers: 'allow' });
 
-// Same fixed-past-year convention as 70-overview.spec.js: every month of 2020 is in the past
-// relative to the real clock, so a paid payment there is unambiguous regardless of today's date.
 const PAST = 2020;
 
-/** The app content area (excludes header/flashes and the Tracy debug bar). */
 function main(page) {
 	return page.getByRole('main');
 }
 
-/** Adds a monthly service through the UI (redirects to the service list on success). */
 async function addMonthlyService(page, { name, amount, dueDay }) {
 	await page.goto('/service/add');
 	await page.getByLabel('Název').fill(name);
@@ -34,7 +20,6 @@ async function addMonthlyService(page, { name, amount, dueDay }) {
 	await expect(page.getByRole('status')).toHaveText('Služba byla přidána.');
 }
 
-/** Marks a service paid for a past period by driving the dashboard at that period. */
 async function payViaDashboard(page, { year, month, name }) {
 	await page.goto(`/?year=${year}&month=${month}`);
 	await main(page).getByRole('listitem').filter({ hasText: name })
@@ -42,11 +27,6 @@ async function payViaDashboard(page, { year, month, name }) {
 	await expect(page.getByRole('status')).toHaveText('Platba byla označena jako zaplacená.');
 }
 
-/**
- * Waits (with a bounded timeout) for the app's own SW registration to become active, resolving to
- * `false` instead of hanging forever if it never does — a slow/flaky registration in a headless
- * container should degrade to a soft assertion, not block the whole suite.
- */
 async function waitForServiceWorker(page, timeoutMs = 10_000) {
 	return page.evaluate((timeout) => Promise.race([
 		navigator.serviceWorker.ready.then(() => true),
@@ -93,8 +73,6 @@ test.describe('Service worker (Phase 5)', () => {
 		expect(swResponse.status()).toBe(200);
 		expect(await swResponse.text()).toContain('CACHE_VERSION');
 
-		// app.js is what actually calls register() — assert the wiring exists even though the
-		// dynamic registration check below is inherently timing-sensitive in a headless run.
 		const appJs = await (await request.get('/js/app.js')).text();
 		expect(appJs).toContain("serviceWorker.register('/sw.js')");
 
@@ -113,19 +91,12 @@ test.describe('Service worker (Phase 5)', () => {
 		await login(page);
 		await waitForServiceWorker(page);
 
-		// Interact: browse a few authenticated pages so the SW's fetch handler runs against real
-		// navigations, not just the one page it registered from.
 		await page.goto('/overview/');
 		await page.goto('/service/');
 		await page.goto('/');
 
 		let cacheUrls = null;
 		try {
-			// Don't hardcode the cache name: sw.js bumps CACHE_VERSION whenever app-shell assets
-			// change (see its own comment) and its `activate` handler deletes every other cache, so
-			// there is exactly one live cache at a time — discover it instead of pinning a literal
-			// that would silently go stale (and start "passing" on an empty just-created cache) the
-			// next time the app bumps the version.
 			cacheUrls = await page.evaluate(async () => {
 				const [cacheName] = await caches.keys();
 				if (!cacheName) {
@@ -136,11 +107,10 @@ test.describe('Service worker (Phase 5)', () => {
 				return keys.map((req) => new URL(req.url).pathname);
 			});
 		} catch {
-			cacheUrls = null; // fall through to the network-level check below
+			cacheUrls = null;
 		}
 
 		if (cacheUrls) {
-			// Whatever ended up cached must be app-shell assets only — never an authenticated page.
 			expect(cacheUrls.length).toBeGreaterThan(0);
 			for (const pathname of cacheUrls) {
 				expect(pathname, `unexpected cache entry (looks like a page route, not an asset): ${pathname}`)
@@ -152,10 +122,6 @@ test.describe('Service worker (Phase 5)', () => {
 			expect(cacheUrls).not.toContain('/sign/in');
 		}
 
-		// Network-level confirmation regardless of whether the cache read above worked: navigation
-		// is wired network-only (see sw.js), so logging out and revisiting a protected URL must
-		// still hit the real server and bounce back to the login page — a stale cached dashboard
-		// would never do that.
 		await logout(page);
 		await page.goto('/overview/');
 		expect(new URL(page.url()).pathname).toBe('/sign/in');
@@ -185,8 +151,6 @@ test.describe('CSV export (Phase 5)', () => {
 		await payViaDashboard(page, { year: PAST, month: 1, name: 'Netflix' });
 
 		await page.goto(`/overview/?year=${PAST}`);
-		// The link's accessible name comes from its aria-label ("Exportovat platby {rok} do CSV"),
-		// not its visible text — aria-label overrides the text content for the accessible name.
 		const [download] = await Promise.all([
 			page.waitForEvent('download'),
 			main(page).getByRole('link', { name: /Exportovat platby/ }).click(),

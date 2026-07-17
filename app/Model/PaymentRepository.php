@@ -6,10 +6,6 @@ namespace App\Model;
 
 use App\Database\Db;
 
-/**
- * Raw SQL repozitář nad tabulkou `payment` (platba za konkrétní období) — žádná business
- * logika (upsert/přechody stavů řeší App\Payment\PaymentService, Fáze 3).
- */
 final class PaymentRepository
 {
 	public function __construct(
@@ -84,7 +80,6 @@ final class PaymentRepository
 				$data['paid_date'] ?? null,
 				$data['skipped_at'] ?? null,
 				$data['amount'],
-				// created_at si repozitář generuje sám — sjednoceno se ServiceRepository::insert().
 				date(DATE_ATOM),
 			],
 		);
@@ -93,12 +88,6 @@ final class PaymentRepository
 	}
 
 	/**
-	 * Jako insert(), ale při kolizi na UNIQUE(service_id, period_year, period_month) řádek
-	 * nechá být (ON CONFLICT DO NOTHING) — idempotentní lazy vznik i při souběhu dvou akcí
-	 * nad stejným čerstvým obdobím (žádná neodchycená UNIQUE violation → 500). Existující
-	 * řádek se nepřepíše (chrání snapshot částky/due_date). Nevrací id — volající si řádek
-	 * dohledá přes findByServiceAndPeriod (viz App\Payment\PaymentService::upsert).
-	 *
 	 * @param array{
 	 *     service_id: int,
 	 *     period_year: int,
@@ -149,19 +138,16 @@ final class PaymentRepository
 		$this->db->execute('DELETE FROM payment WHERE id = ?', [$id]);
 	}
 
-	/** Nastaví/zruší zaplacení (NULL = vrátit mezi nezaplacené) — viz App\Payment\PaymentService::markPaid/unmarkPaid. */
 	public function setPaidDate(int $id, ?string $paidDate): void
 	{
 		$this->db->execute('UPDATE payment SET paid_date = ? WHERE id = ?', [$paidDate, $id]);
 	}
 
-	/** Nastaví/zruší přeskočení (NULL = zrušit) — viz App\Payment\PaymentService::skip/unskip. */
 	public function setSkipped(int $id, ?string $skippedAt): void
 	{
 		$this->db->execute('UPDATE payment SET skipped_at = ? WHERE id = ?', [$skippedAt, $id]);
 	}
 
-	/** Ruční úprava částky pro dané období (odchylka od snapshotu service.amount). */
 	public function setAmount(int $id, int $amount): void
 	{
 		$this->db->execute('UPDATE payment SET amount = ? WHERE id = ?', [$amount, $id]);

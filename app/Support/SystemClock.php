@@ -7,7 +7,6 @@ namespace App\Support;
 use DateTimeImmutable;
 use DateTimeZone;
 
-/** Produkční implementace Clock — skutečné aktuální datum/čas v Europe/Prague (viz CLAUDE.md). */
 final class SystemClock implements Clock
 {
 	public function now(): DateTimeImmutable

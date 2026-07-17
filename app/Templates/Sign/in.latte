@@ -3,9 +3,6 @@
 {block content}
 <main class="flex min-h-dvh flex-col items-center justify-center px-4 py-12">
 	<div class="w-full max-w-sm">
-		{* Logotyp „kamto" + tečky-měsíce — stejná značka jako ikona aplikace (icons/icon.svg,
-		   návrh 13). Inline hex: plné tečky z whitelistu CategoryPresenter::Palette,
-		   čárkovaná pauza accent-300. *}
 		<div class="mb-8 text-center">
 			<h1 class="text-2xl font-bold tracking-tight text-accent-700">kamto</h1>
 			<div class="mt-2.5 flex items-center justify-center gap-1.5" aria-hidden="true">
@@ -19,8 +16,6 @@
 		</div>
 
 		<div class="rounded-card border border-stone-200 bg-white p-6 shadow-sm shadow-stone-200/60 sm:p-8">
-			{* Nepřihlášená stránka — flash zprávy (např. po odhlášení) se vykreslují tady
-			   uvnitř karty, centralizované flashe v @layout jsou jen pro přihlášený chrome. *}
 			<div n:if="$flashes" class="mb-5 space-y-2">
 				<p n:foreach="$flashes as $flash"
 					n:class="'rounded-lg px-3 py-2 text-sm', $flash->type === 'error' ? 'bg-red-50 text-red-700' : 'bg-accent-50 text-accent-700'"

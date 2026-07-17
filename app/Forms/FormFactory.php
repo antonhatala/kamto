@@ -6,10 +6,6 @@ namespace App\Forms;
 
 use Nette\Application\UI\Form;
 
-/**
- * Tovární metoda pro formuláře s přednastaveným českým překladačem hlášek (FormTranslator).
- * Presentery vytvářejí formuláře přes ni, ať vestavěné validační hlášky Nette nechodí anglicky.
- */
 final class FormFactory
 {
 	public function __construct(

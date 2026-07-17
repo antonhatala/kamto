@@ -15,7 +15,6 @@ $categories = new CategoryRepository($db);
 $services = new ServiceRepository($db);
 $payments = new PaymentRepository($db);
 
-// service delete -> payment CASCADE.
 $categoryId = $categories->insert(['name' => 'Domácnost', 'color' => '#c1622e']);
 $serviceId = $services->insert([
 	'name' => 'Internet',
@@ -36,7 +35,6 @@ Assert::notSame(null, $payments->find($paymentId));
 $services->delete($serviceId);
 Assert::null($payments->find($paymentId));
 
-// category delete -> service.category_id SET NULL (služba samotná zůstává).
 $categoryId2 = $categories->insert(['name' => 'Zábava', 'color' => '#eac29c']);
 $serviceId2 = $services->insert([
 	'name' => 'Spotify',
@@ -51,7 +49,6 @@ $categories->delete($categoryId2);
 Assert::notSame(null, $services->find($serviceId2));
 Assert::null($services->find($serviceId2)['category_id']);
 
-// CHECK constraint violace -> chyba.
 Assert::exception(
 	static fn() => $services->insert([
 		'name' => 'Neplatná perioda',

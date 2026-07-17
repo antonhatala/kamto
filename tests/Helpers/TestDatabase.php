@@ -7,7 +7,6 @@ namespace Tests\Helpers;
 use App\Database\PdoSqliteDb;
 use RuntimeException;
 
-/** Sdílený test helper — čerstvá dočasná SQLite DB se schématem ze všech migrations/*.sql. */
 final class TestDatabase
 {
 	public static function create(): PdoSqliteDb
@@ -19,8 +18,6 @@ final class TestDatabase
 
 		$db = new PdoSqliteDb($path);
 
-		// Stejný seznam migrací a stejné pořadí jako MigrationRunner — testy tak vždy běží
-		// nad aktuálním schématem, ne jen nad 001_init.sql (viz 002_payment_skipped.sql).
 		$files = glob(self::migrationsDir() . '/*.sql') ?: [];
 		sort($files, SORT_STRING);
 		foreach ($files as $file) {

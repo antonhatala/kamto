@@ -6,10 +6,6 @@ namespace App\Database;
 
 use InvalidArgumentException;
 
-/**
- * Vybírá implementaci Db podle configu (config/config.neon parametr `database`). Registrovaná
- * jako DI service factory — viz config.neon `services: database: App\Database\DbFactory::create(%database%)`.
- */
 final class DbFactory
 {
 	/** @param array{driver: string, path: string, url: string, token: string} $database */

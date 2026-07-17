@@ -6,7 +6,6 @@ namespace App\Model;
 
 use App\Database\Db;
 
-/** Raw SQL repozitář nad tabulkou `category` — žádná business logika. */
 final class CategoryRepository
 {
 	public function __construct(
@@ -26,12 +25,7 @@ final class CategoryRepository
 		return $this->db->fetch('SELECT * FROM category WHERE id = ?', [$id]);
 	}
 
-	/**
-	 * Kategorie indexované podle id — pro zobrazení u služeb bez N+1 (seznam služeb,
-	 * dashboard). Sdíleno presentery, ať se indexace nekopíruje.
-	 *
-	 * @return array<int, array<string, mixed>>
-	 */
+	/** @return array<int, array<string, mixed>> */
 	public function findAllById(): array
 	{
 		$categoriesById = [];
@@ -42,13 +36,11 @@ final class CategoryRepository
 		return $categoriesById;
 	}
 
-	/** Počet služeb v kategorii — pro potvrzení smazání (viz CategoryPresenter::actionDelete). */
 	public function countServices(int $categoryId): int
 	{
 		return (int) $this->db->fetchField('SELECT COUNT(*) FROM service WHERE category_id = ?', [$categoryId]);
 	}
 
-	/** Pořadí pro novou kategorii = o jedno za nejvyšším. */
 	public function nextSortOrder(): int
 	{
 		return (int) $this->db->fetchField('SELECT COALESCE(MAX(sort_order), 0) + 1 FROM category');

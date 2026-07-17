@@ -1,17 +1,7 @@
-{*
-	Sdílená skořápka formuláře (add/edit) — karta, nadpis, form-level chyby a akční řádek
-	„Uložit / Zpět". Konkrétní pole doplní volající přes {block fields}. Fáze 3 (payment form)
-	se sem napojí stejně.
-
-	Parametry (přes {embed '../_formCard.latte', ...}):
-	  $formName  — jméno formulářové komponenty (n:name), např. 'serviceForm'
-	  $heading   — nadpis karty
-*}
 <div class="mx-auto max-w-lg">
 	<h1 class="text-lg font-semibold tracking-tight text-stone-900 sm:text-xl">{$heading}</h1>
 
 	<form n:name=$formName class="mt-5 space-y-5 rounded-card border border-stone-200 bg-white p-5 shadow-sm shadow-stone-200/60 sm:p-8">
-		{* Jen form-level chyby — chyby polí se vykreslují inline u polí ({inputError}). *}
 		<div n:if="$form->getOwnErrors()" class="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">
 			<p n:foreach="$form->getOwnErrors() as $error">{$error}</p>
 		</div>

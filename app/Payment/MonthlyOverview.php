@@ -7,17 +7,11 @@ namespace App\Payment;
 use App\Support\DueDateCalculator;
 use DateTimeImmutable;
 
-/**
- * Čistá agregace dashboardu „Co zaplatit" za jedno období — z aktivních služeb a plateb
- * daného období sestaví položky (existující platba, nebo virtuální naplánováno dopočtené ze
- * šablony), odvodí stav, seřadí, rozdělí do sekcí a spočítá součty. Žádná DB ani „dnes"
- * zevnitř — vše přichází argumentem (viz HomePresenter), takže je celé jednotkově testovatelné.
- */
 final class MonthlyOverview
 {
 	/**
-	 * @param list<array<string, mixed>> $services aktivní služby (ServiceRepository::findAll)
-	 * @param list<array<string, mixed>> $payments platby daného období (PaymentRepository::findByPeriod)
+	 * @param list<array<string, mixed>> $services
+	 * @param list<array<string, mixed>> $payments
 	 */
 	public static function build(
 		int $year,
@@ -34,7 +28,6 @@ final class MonthlyOverview
 
 		$items = [];
 		foreach ($services as $service) {
-			// Roční služba je kandidát jen ve svém měsíci splatnosti; měsíční vždy.
 			if ($service['period'] === 'yearly' && (int) $service['due_month'] !== $month) {
 				continue;
 			}
@@ -44,9 +37,6 @@ final class MonthlyOverview
 				$dueDate = (string) $payment['due_date'];
 				$amount = (int) $payment['amount'];
 			} else {
-				// Žádný řádek = neřešeno/budoucí — virtuální „naplánováno" s dopočteným
-				// due_date a částkou ze šablony služby. Klouzavá služba nemá pevný den
-				// splatnosti — řadí se na konec měsíce (poslední den), viz CONTEXT.md.
 				$dueDay = (int) ($service['is_sliding'] ?? 0) === 1
 					? DueDateCalculator::LastDayOfMonth
 					: (int) $service['due_day'];
@@ -68,7 +58,6 @@ final class MonthlyOverview
 			);
 		}
 
-		// Řazení: due_date vzestupně, pak id služby (stabilní tie-break v rámci dne).
 		usort(
 			$items,
 			static fn(DashboardItem $a, DashboardItem $b): int
@@ -90,7 +79,7 @@ final class MonthlyOverview
 			if ($item->status === PaymentStatus::Paid) {
 				$paidTotal += $item->amount;
 			} elseif ($item->status !== PaymentStatus::Skipped) {
-				$remainingTotal += $item->amount; // po splatnosti + naplánováno = „zbývá zaplatit"
+				$remainingTotal += $item->amount;
 			}
 		}
 

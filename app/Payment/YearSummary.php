@@ -6,18 +6,12 @@ namespace App\Payment;
 
 use DateTimeImmutable;
 
-/**
- * Čistá agregace ročního souhrnu — kolik je letos zaplaceno (napříč všemi službami vč.
- * archivovaných, historická pravda), měsíční průměr, aktuální měsíční/roční závazek (jen
- * aktivní služby) a rozpad zaplaceného podle kategorie. Žádná DB ani „dnes" zevnitř — vše
- * přichází argumentem (viz OverviewPresenter), jednotkově testovatelné (YearSummaryTest).
- */
 final class YearSummary
 {
 	/**
-	 * @param list<array<string, mixed>> $services VŠECHNY služby vč. archivovaných (ServiceRepository::findAll(true))
-	 * @param list<array<string, mixed>> $payments platby roku (PaymentRepository::findByYear)
-	 * @param list<array<string, mixed>> $categories (CategoryRepository::findAll)
+	 * @param list<array<string, mixed>> $services
+	 * @param list<array<string, mixed>> $payments
+	 * @param list<array<string, mixed>> $categories
 	 */
 	public static function build(
 		int $year,
@@ -39,13 +33,7 @@ final class YearSummary
 		}
 
 		$paidThisYear = 0;
-		// Rozpad zaplaceného po měsících pro roční graf — počítá se z PLATEB (period_month
-		// platby) v téže smyčce co paidThisYear, takže Σ paidByMonth === paidThisYear vždy.
-		// (Dřív to dopočítávala šablona z Paid buněk heatmapy → roční platba mimo due_month je
-		// buňka Inactive/amount=null a z grafu vypadla, ale v headline byla → nesoulad.)
 		$paidByMonth = array_fill(1, 12, 0);
-		// Klíč 0 = "bez kategorie" (žádné reálné id kategorie nikdy 0, SQLite INTEGER PRIMARY
-		// KEY začíná na 1) — jednoduché indexování bez mixed int|string klíčů.
 		/** @var array<int, int> $amountByCategoryId */
 		$amountByCategoryId = [];
 		/** @var array<int, array<string, mixed>|null> $categoryRowById */
@@ -53,12 +41,11 @@ final class YearSummary
 
 		foreach ($payments as $payment) {
 			if ($payment['paid_date'] === null) {
-				continue; // Jen zaplacené platby patří do "letos zaplaceno" (žebříček stavu, CONTEXT.md).
+				continue;
 			}
 
 			$amount = (int) $payment['amount'];
 			$paidThisYear += $amount;
-			// period_month platby (u roční služby její due_month) — DB CHECK garantuje 1–12.
 			$paidByMonth[(int) $payment['period_month']] += $amount;
 
 			$service = $servicesById[(int) $payment['service_id']] ?? null;
@@ -75,7 +62,6 @@ final class YearSummary
 				$amount,
 			);
 		}
-		// Sestupně dle částky; shodná částka -> abecedně dle jména (deterministické pořadí).
 		usort(
 			$categoryBreakdown,
 			static fn(CategoryBreakdownItem $a, CategoryBreakdownItem $b): int
@@ -108,11 +94,6 @@ final class YearSummary
 		);
 	}
 
-	/**
-	 * Kolik měsíců roku už uplynulo vzhledem k "dnes" — minulý rok vždy celých 12, budoucí
-	 * rok 0 (žádný uplynulý měsíc, volající se pak dělení nulou nesmí ani pokusit), aktuální
-	 * rok číslo měsíce dle "dnes".
-	 */
 	private static function elapsedMonths(int $year, DateTimeImmutable $today): int
 	{
 		$currentYear = (int) $today->format('Y');

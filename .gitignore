@@ -1,41 +1,30 @@
-# PHP
 /vendor/
 
-# Node
 /node_modules/
 
-# Nette
 /temp/*
 !/temp/.gitignore
 /log/*
 !/log/.gitignore
 
-# Lokální SQLite
 /var/*.db
 /var/*.db-*
 /var/*.sqlite
 
-# Build output (Tailwind)
 /www/css/app.css
 
-# Secrets / lokální config
 /config/config.local.neon
 /config/local/
 .env
 
-# Docker
 docker-compose.override.yml
 
-# Editor / OS
 /.idea/
 .DS_Store
 
-# Testy
 /.phpunit.cache/
-# nette/tester zapisuje *.actual vedle *.expected při selhání Assert::matchFile — artefakt, ne fixture.
 tests/**/output/*.actual
 
-# E2E (Playwright, tests/e2e/) — own package.json, kept separate from the root Tailwind tooling.
 /tests/e2e/node_modules/
 /tests/e2e/playwright-report/
 /tests/e2e/test-results/

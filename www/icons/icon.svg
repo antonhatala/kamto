@@ -1,16 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-  Kamto app icon (purpose: any) — logotyp „kamto" (accent-700 na krému accent-50) s řádkou
-  pěti teček-měsíců pod textem: čtyři barvy kategorií (terakotová, petrolejová, hořčicová,
-  modrá — whitelist CategoryPresenter::Palette) + poslední čárkovaná = pauza (mezera
-  v heatmapě). Návrh č. 13 z galerie, vybral uživatel (issue 2026-07).
-  POZOR na rasterizaci: text je závislý na fontu — PNG se generují v Playwright kontejneru
-  s doinstalovaným fontem Inter (apt fonts-inter), fallback Liberation Sans. V aplikaci
-  (hlavička, login) je logotyp HTML/CSS v systémovém fontu — drobný rozdíl je záměr,
-  app je bez webfontů.
-  Předloha pro icon-192.png, icon-512.png; apple-touch-icon.png (180) se rasterizuje
-  z icon-maskable.svg (full-bleed — iOS neumí průhledné rohy).
--->
 <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="Kamto">
 	<rect width="512" height="512" rx="112" ry="112" fill="#fbf0e6"/>
 	<text x="256" y="228" font-family="Inter, 'SF Pro Text', -apple-system, 'Liberation Sans', system-ui, sans-serif"

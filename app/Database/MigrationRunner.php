@@ -6,15 +6,6 @@ namespace App\Database;
 
 use RuntimeException;
 
-/**
- * Aplikuje migrations/NNN_*.sql podle stavu v tabulce `_migration` (kterou si sám vytvoří).
- * Každá migrace + zápis do `_migration` proběhne v jedné transakci (Db::transaction) — při
- * výjimce transakce rollbackne a výjimka propadne volajícímu (bin/migrate.php nastaví
- * nenulový exit kód).
- *
- * POZOR: migrační SQL nesmí obsahovat vlastní BEGIN/COMMIT — transakci řídí runner
- * a Db::transaction() není vnořitelná, explicitní BEGIN uvnitř migrace by selhal.
- */
 final class MigrationRunner
 {
 	public function __construct(
@@ -23,7 +14,7 @@ final class MigrationRunner
 	) {
 	}
 
-	/** @return list<string> verze migrací aplikovaných při tomto běhu (prázdné pole = no-op) */
+	/** @return list<string> */
 	public function run(): array
 	{
 		$this->db->executeScript(

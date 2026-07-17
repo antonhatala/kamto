@@ -5,11 +5,6 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>Offline – Kamto</title>
 	<meta name="theme-color" content="#ffffff">
-	<!--
-		Statická, neautentizovaná offline stránka (service worker ji vrací při selhání sítě na
-		navigaci). Styl je inline a soběstačný — nesmí záviset na síti ani na přihlášení. Žádné
-		uživatelské údaje.
-	-->
 	<style>
 		:root { color-scheme: light; }
 		* { box-sizing: border-box; }
@@ -29,7 +24,6 @@
 			max-width: 22rem;
 			text-align: center;
 		}
-		/* Logotyp „kamto" + tečky-měsíce — stejná značka jako ikona aplikace (icons/icon.svg). */
 		.logo { margin: 0 0 1.25rem; }
 		.logo strong {
 			display: block;

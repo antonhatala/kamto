@@ -1,13 +1,6 @@
 parameters:
-	# Bcrypt/argon hash of the login password. Locally overridden in config.local.neon,
-	# on production supplied via the APP_PASSWORD_HASH environment variable.
 	appPasswordHash: %env.APP_PASSWORD_HASH%
 
-	# DB brána (Fáze 1) — řízená přes env (Bootstrap dodává defaulty, viz app/Bootstrap.php).
-	# Lokálně bez proměnných → DATABASE_DRIVER='pdo-sqlite' → PdoSqliteDb nad var/kamto.db
-	# (%rootDir% = projekt root, viz Nette\Bootstrap\Configurator). Na Bunny (Fáze 6) stačí
-	# nastavit DATABASE_DRIVER=libsql + DATABASE_URL + DATABASE_TOKEN — stejný image, jen jiné env,
-	# DbFactory přepne na LibsqlDb (nativní libSQL extension). Žádná změna kódu ani rebuildu.
 	database:
 		driver: %env.DATABASE_DRIVER%
 		path: %rootDir%/var/kamto.db
@@ -23,34 +16,14 @@ latte:
 
 http:
 	headers:
-		# Don't advertise the framework in responses.
 		X-Powered-By: null
-		# Baseline hardening (bezpečnostní review Fáze 2) — brání MIME sniffingu a omezuje únik
-		# URL v Referer hlavičce mimo vlastní origin.
 		X-Content-Type-Options: nosniff
 		Referrer-Policy: same-origin
-		# CSP (Fáze 5) — pragmatická, po externalizaci klientského JS do /js/app.js:
-		#   script-src 'self'  → žádný inline <script> (to je ta výhra z externalizace).
-		#   style-src 'unsafe-inline' → NUTNÉ kvůli inline `style="background-color:#hex"` u
-		#     kategorií/heatmapy (hex je serverový whitelist, viz CategoryPresenter::Palette).
-		#   img-src data: → povolené data URI obrázky. object-src 'none', base-uri/form-action 'self'.
-		# ROZHODNUTÍ: CSP je PRODUKČNÍ. V dev režimu ji vypíná verzovaný config.dev.neon
-		# (Content-Security-Policy: null), načtený jen v debug módu (Tracy injektuje inline <script>+eval).
-		# Produkce config.dev.neon míjí → CSP reálně aplikuje (fail-closed dle APP_ENV). Viz CLAUDE.md.
 		Content-Security-Policy: "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'"
-	# Session/CSRF cookie Secure flag (Fáze 6). Za Bunny edge chodí request do kontejneru plain HTTP
-	# (TLS termuje edge), takže default 'auto' (dle isSecured()) by Secure NEnastavil. Vynutíme (produkce
-	# = vždy HTTPS na edge; přidej i HSTS na edge). Lokální http dev to vypíná v config.dev.neon.
 	cookieSecure: true
 
-# Session soubory na perzistentní volume (Fáze 6) — /tmp v kontejneru je efemérní, redeploy by
-# odhlásil (nová session storage bez souborů = ztráta session). var/ je mountnutý Bunny volume,
-# takže session přežije restart/redeploy stejně jako SQLite databáze (viz database.path výše).
 session:
 	savePath: %rootDir%/var/sessions
-	# Sliding expirace 14 dní (pohodlí single-user appky) — bez ní by Nette default odhlásil
-	# po zavření prohlížeče (nepersistentní cookie) i po ~24 min nečinnosti (session.gc_maxlifetime).
-	# Nette `expiration` nastaví obojí zároveň.
 	expiration: 14 days
 
 services:

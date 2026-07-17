@@ -1,12 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-  Kamto maskable icon (purpose: maskable) — stejný logotyp „kamto" + tečky-měsíce jako
-  icon.svg (návrh č. 13), ale full-bleed krémové pozadí (edge-to-edge, aby OS maska vždy
-  ukázala barvu) a obsah zmenšený do ~80% safe-zone (nejvzdálenější bod ~165 px od středu
-  < poloměr 205 px). Předloha pro icon-192-maskable.png, icon-512-maskable.png
-  a apple-touch-icon.png (180 — iOS si rohy zaobluje sám). Rasterizace vyžaduje font Inter
-  (viz icon.svg), fallback Liberation Sans.
--->
 <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="Kamto">
 	<rect width="512" height="512" fill="#fbf0e6"/>
 	<text x="256" y="233" font-family="Inter, 'SF Pro Text', -apple-system, 'Liberation Sans', system-ui, sans-serif"

@@ -4,10 +4,6 @@ declare(strict_types=1);
 
 namespace App\Support;
 
-/**
- * Sdílené české názvy měsíců (1–12) — používá ServicePresenter (select měsíce splatnosti
- * roční služby) i HomePresenter (dashboard). Jediné místo, ať se nekopíruje.
- */
 final class Months
 {
 	public const array Names = [
