@@ -5,7 +5,7 @@
  */
 
 // Bumpni při každé změně assetů app shellu (CSS/JS/ikony) → activate smaže starou cache.
-const CACHE_VERSION = 'kamto-static-v3';
+const CACHE_VERSION = 'kamto-static-v4';
 
 // Musí existovat teď — když jeden 404, selže instalace (záměrně, ať cache není půl prázdná).
 const CORE_ASSETS = ['/css/app.css', '/js/app.js', '/manifest.json', '/offline.html'];
