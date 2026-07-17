@@ -7,9 +7,10 @@
 	<meta name="theme-color" content="#ffffff">
 	<link rel="stylesheet" href="/css/app.css">
 	<link rel="manifest" href="/manifest.json">
-	{* Favicon = inverzní varianta logotypu (copper podklad) — krémová ikona na světlém tab
-	   baru splývá a Safari kolem světlých favicon kreslí tmavý obrys. PNG, ne SVG: logotyp
-	   je <text> a jeho podoba by závisela na fontech prohlížeče (viz icons/icon.svg). *}
+	{* Favicon = logotyp na průhledném pozadí (gitlabí styl) — Safari kreslí tmavý obrys jen
+	   kolem favicon se světlou neprůhlednou destičkou, průhledný glyf obrys nedostane a světlý
+	   podklad dodá sám tab bar. PNG, ne SVG: logotyp je <text> a jeho podoba by závisela na
+	   fontech prohlížeče (viz icons/favicon.svg). *}
 	<link rel="icon" href="/icons/favicon.png" type="image/png">
 	<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 	{* Veškerý klientský JS je v jednom externím souboru (žádný inline <script> → CSP script-src 'self'). *}
