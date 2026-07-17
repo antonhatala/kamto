@@ -42,6 +42,12 @@
 	dialog {
 		margin: auto;
 	}
+
+	/* Tailwind v4 nechává tlačítkům cursor: default (změna oproti v3) — interaktivní tlačítka
+	   mají mít pacičku jako odkazy (Odhlásit se, Zaplaceno, Upravit…). */
+	button:not(:disabled) {
+		cursor: pointer;
+	}
 }
 
 /*
@@ -138,7 +144,7 @@
 	/* Nativní checkbox — velikost sladěná s ostatními ovládacími prvky, accent-color naváže
 	   zaškrtnutí na brand barvu (bez @tailwindcss/forms pluginu, prostá CSS vlastnost). */
 	.checkbox {
-		@apply h-4 w-4 shrink-0 rounded border-stone-300 focus:outline-none focus:ring-2 focus:ring-accent-200 focus:ring-offset-0;
+		@apply h-4 w-4 shrink-0 cursor-pointer rounded border-stone-300 focus:outline-none focus:ring-2 focus:ring-accent-200 focus:ring-offset-0;
 		accent-color: var(--color-accent-600);
 	}
 
