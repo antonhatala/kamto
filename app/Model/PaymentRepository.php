@@ -68,15 +68,14 @@ final class PaymentRepository
 	 *     paid_date?: string|null,
 	 *     skipped_at?: string|null,
 	 *     amount: int,
-	 *     note?: string|null,
 	 * } $data
 	 */
 	public function insert(array $data): int
 	{
 		$this->db->execute(
 			'INSERT INTO payment
-				(service_id, period_year, period_month, due_date, paid_date, skipped_at, amount, note, created_at)
-				VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+				(service_id, period_year, period_month, due_date, paid_date, skipped_at, amount, created_at)
+				VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
 			[
 				$data['service_id'],
 				$data['period_year'],
@@ -85,7 +84,6 @@ final class PaymentRepository
 				$data['paid_date'] ?? null,
 				$data['skipped_at'] ?? null,
 				$data['amount'],
-				$data['note'] ?? null,
 				// created_at si repozitář generuje sám — sjednoceno se ServiceRepository::insert().
 				date(DATE_ATOM),
 			],
@@ -109,15 +107,14 @@ final class PaymentRepository
 	 *     paid_date?: string|null,
 	 *     skipped_at?: string|null,
 	 *     amount: int,
-	 *     note?: string|null,
 	 * } $data
 	 */
 	public function insertIgnore(array $data): void
 	{
 		$this->db->execute(
 			'INSERT INTO payment
-				(service_id, period_year, period_month, due_date, paid_date, skipped_at, amount, note, created_at)
-				VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+				(service_id, period_year, period_month, due_date, paid_date, skipped_at, amount, created_at)
+				VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 				ON CONFLICT (service_id, period_year, period_month) DO NOTHING',
 			[
 				$data['service_id'],
@@ -127,7 +124,6 @@ final class PaymentRepository
 				$data['paid_date'] ?? null,
 				$data['skipped_at'] ?? null,
 				$data['amount'],
-				$data['note'] ?? null,
 				date(DATE_ATOM),
 			],
 		);
@@ -138,14 +134,13 @@ final class PaymentRepository
 	 *     due_date: string,
 	 *     paid_date: string|null,
 	 *     amount: int,
-	 *     note: string|null,
 	 * } $data
 	 */
 	public function update(int $id, array $data): void
 	{
 		$this->db->execute(
-			'UPDATE payment SET due_date = ?, paid_date = ?, amount = ?, note = ? WHERE id = ?',
-			[$data['due_date'], $data['paid_date'], $data['amount'], $data['note'], $id],
+			'UPDATE payment SET due_date = ?, paid_date = ?, amount = ? WHERE id = ?',
+			[$data['due_date'], $data['paid_date'], $data['amount'], $id],
 		);
 	}
 
@@ -166,9 +161,9 @@ final class PaymentRepository
 		$this->db->execute('UPDATE payment SET skipped_at = ? WHERE id = ?', [$skippedAt, $id]);
 	}
 
-	/** Ruční úprava částky pro dané období (odchylka od snapshotu service.amount) + volitelná poznámka. */
-	public function setAmount(int $id, int $amount, ?string $note): void
+	/** Ruční úprava částky pro dané období (odchylka od snapshotu service.amount). */
+	public function setAmount(int $id, int $amount): void
 	{
-		$this->db->execute('UPDATE payment SET amount = ?, note = ? WHERE id = ?', [$amount, $note, $id]);
+		$this->db->execute('UPDATE payment SET amount = ? WHERE id = ?', [$amount, $id]);
 	}
 }

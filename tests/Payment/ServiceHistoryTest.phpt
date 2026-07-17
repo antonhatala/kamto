@@ -15,7 +15,7 @@ $today = new DateTimeImmutable('2026-07-08');
  * Fixture řádku platby.
  * @return array<string, mixed>
  */
-function payment(int $year, int $month, string $dueDate, int $amount, ?string $paidDate, ?string $skippedAt, ?string $note = null): array
+function payment(int $year, int $month, string $dueDate, int $amount, ?string $paidDate, ?string $skippedAt): array
 {
 	return [
 		'period_year' => $year,
@@ -24,7 +24,6 @@ function payment(int $year, int $month, string $dueDate, int $amount, ?string $p
 		'paid_date' => $paidDate,
 		'skipped_at' => $skippedAt,
 		'amount' => $amount,
-		'note' => $note,
 	];
 }
 
@@ -46,7 +45,7 @@ $payments = [
 	payment(2024, 1, '2024-01-15', 10000, '2024-01-10', null),  // Paid
 	payment(2024, 6, '2024-06-15', 10000, null, '2024-06-01'),  // Skipped
 	payment(2024, 12, '2024-12-15', 10000, null, null),         // due < dnes -> Overdue
-	payment(2026, 1, '2026-01-15', 12000, '2026-01-10', null, 'Zdražení'), // Paid, s poznámkou
+	payment(2026, 1, '2026-01-15', 12000, '2026-01-10', null), // Paid
 	payment(2026, 8, '2026-08-15', 12000, null, null),          // due >= dnes -> Planned
 ];
 
@@ -68,9 +67,6 @@ Assert::same(['year' => 2026, 'month' => 8], ['year' => $result->payments[0]->pe
 Assert::same(PaymentStatus::Planned, $result->payments[0]->status);
 Assert::same(['year' => 2024, 'month' => 1], ['year' => $result->payments[4]->periodYear, 'month' => $result->payments[4]->periodMonth]);
 Assert::same(PaymentStatus::Paid, $result->payments[4]->status);
-// Poznámka se propisuje na položku historie.
-Assert::same('Zdražení', $result->payments[1]->note); // 2026-01, druhá odshora
-Assert::null($result->payments[0]->note);
 
 // Mini-heatmapa: 3 roky (2024, 2025 — E2 "mezerový" rok bez jediné platby, 2026), každý 12 sloupců.
 Assert::count(3, $result->heatmapYears);

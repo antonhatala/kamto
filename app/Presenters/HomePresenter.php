@@ -168,7 +168,6 @@ final class HomePresenter extends SecuredPresenter
 			$payment = $this->paymentsByServiceId[$serviceId] ?? null;
 			$service = $this->servicesById[$serviceId] ?? null;
 			$currentAmount = $payment !== null ? (int) $payment['amount'] : (int) ($service['amount'] ?? 0);
-			$currentNote = $payment !== null ? (string) ($payment['note'] ?? '') : '';
 
 			$form = $this->formFactory->create();
 
@@ -179,10 +178,6 @@ final class HomePresenter extends SecuredPresenter
 					static fn(Control $control): bool => Money::parseCzk($control->getValue()) !== null,
 					'Zadejte platnou částku.',
 				);
-
-			$form->addTextArea('note', 'Poznámka')
-				->setDefaultValue($currentNote)
-				->addRule(Form::MaxLength, 'Poznámka může mít nejvýše %d znaků.', 500);
 
 			$form->addSubmit('send', 'Uložit částku');
 			$form->addProtection('Vypršel časový limit, zkuste to prosím znovu.');
@@ -198,8 +193,7 @@ final class HomePresenter extends SecuredPresenter
 					return;
 				}
 
-				$note = trim($values->note) === '' ? null : trim($values->note);
-				$this->paymentService->setAmount($serviceId, $this->year, $this->month, $amount, $note);
+				$this->paymentService->setAmount($serviceId, $this->year, $this->month, $amount);
 				$this->flashMessage('Částka byla upravena.');
 				$this->redirect('Home:default', ['year' => $this->year, 'month' => $this->month]);
 			};

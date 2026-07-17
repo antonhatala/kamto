@@ -46,7 +46,6 @@ function payment(int $serviceId, int $year, int $month, int $amount, ?string $pa
 		'paid_date' => $paidDate,
 		'skipped_at' => null,
 		'amount' => $amount,
-		'note' => null,
 	];
 }
 

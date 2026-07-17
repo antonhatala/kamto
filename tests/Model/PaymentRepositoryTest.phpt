@@ -43,7 +43,6 @@ $febId = $payments->insert([
 	'due_date' => '2026-02-05',
 	'paid_date' => '2026-02-03',
 	'amount' => 1500000,
-	'note' => 'Zaplaceno dřív',
 ]);
 $otherJanId = $payments->insert([
 	'service_id' => $otherServiceId,
@@ -62,7 +61,6 @@ Assert::truthy($jan['created_at']);
 $found = $payments->findByServiceAndPeriod($serviceId, 2026, 2);
 Assert::same($febId, $found['id']);
 Assert::same('2026-02-03', $found['paid_date']);
-Assert::same('Zaplaceno dřív', $found['note']);
 
 $byService = $payments->findByService($serviceId);
 Assert::count(2, $byService);
@@ -94,11 +92,9 @@ $payments->update($janId, [
 	'due_date' => '2026-01-05',
 	'paid_date' => '2026-01-04',
 	'amount' => 1500000,
-	'note' => 'Zaplaceno včas',
 ]);
 $updatedJan = $payments->find($janId);
 Assert::same('2026-01-04', $updatedJan['paid_date']);
-Assert::same('Zaplaceno včas', $updatedJan['note']);
 
 $payments->delete($otherJanId);
 Assert::null($payments->find($otherJanId));
@@ -128,11 +124,10 @@ Assert::null($payments->find($marId)['skipped_at']);
 $payments->setSkipped($marId, '2026-03-03');
 Assert::same('2026-03-03', $payments->find($marId)['skipped_at']);
 
-// setAmount — přepíše částku i poznámku, due_date/skipped_at zůstávají nedotčené.
-$payments->setAmount($marId, 1600000, 'Zvýšeno nájemné');
+// setAmount — přepíše částku, due_date/skipped_at zůstávají nedotčené.
+$payments->setAmount($marId, 1600000);
 $updatedMar = $payments->find($marId);
 Assert::same(1600000, $updatedMar['amount']);
-Assert::same('Zvýšeno nájemné', $updatedMar['note']);
 Assert::same('2026-03-03', $updatedMar['skipped_at']);
 Assert::same('2026-03-05', $updatedMar['due_date']);
 

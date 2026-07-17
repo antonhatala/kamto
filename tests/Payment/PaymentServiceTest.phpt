@@ -56,10 +56,9 @@ Assert::null($payments->findByServiceAndPeriod($monthlyId, 2026, 7)['skipped_at'
 
 // setAmount — upraví jen tenhle jeden řádek; pozdější (dřívější) změna service.amount se do
 // existující platby nepropíše (snapshot).
-$paymentService->setAmount($monthlyId, 2026, 7, 65000, 'Zdražili o 50 Kč');
+$paymentService->setAmount($monthlyId, 2026, 7, 65000);
 $adjusted = $payments->findByServiceAndPeriod($monthlyId, 2026, 7);
 Assert::same(65000, $adjusted['amount']);
-Assert::same('Zdražili o 50 Kč', $adjusted['note']);
 Assert::same(60000, $services->find($monthlyId)['amount']);
 
 // Roční služba: platba se eviduje na její due_month, ne na libovolný předaný měsíc.
@@ -114,7 +113,7 @@ Assert::exception(
 	InvalidArgumentException::class,
 );
 Assert::exception(
-	static fn() => $paymentService->setAmount($archivedId, 2026, 7, 100, null),
+	static fn() => $paymentService->setAmount($archivedId, 2026, 7, 100),
 	InvalidArgumentException::class,
 );
 Assert::count(0, $payments->findByService($archivedId));

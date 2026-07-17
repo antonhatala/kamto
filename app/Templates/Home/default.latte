@@ -19,12 +19,8 @@
 		$overdue ? 'border-red-200 bg-red-50/60' : ($slidingActive ? 'border-accent-200 bg-accent-50/60' : 'border-stone-200'),
 		$muted ? 'bg-stone-50' : ($overdue || $slidingActive ? '' : 'bg-white')
 	">
-		{* Ikona služby — emoji, nebo iniciála jako fallback (stejný vzor jako seznam služeb). *}
-		{if $service['icon']}
-			<span n:class="'flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-lg', $overdue ? 'bg-red-100' : 'bg-stone-100', $muted ? 'opacity-60' : ''" aria-hidden="true">{$service['icon']}</span>
-		{else}
-			<span n:class="'flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-sm font-semibold text-stone-500', $overdue ? 'bg-red-100' : 'bg-stone-100', $muted ? 'opacity-60' : ''" aria-hidden="true">{mb_strtoupper(mb_substr($service['name'], 0, 1))}</span>
-		{/if}
+		{* Iniciála služby (stejný vzor jako seznam služeb). *}
+		<span n:class="'flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-sm font-semibold text-stone-500', $overdue ? 'bg-red-100' : 'bg-stone-100', $muted ? 'opacity-60' : ''" aria-hidden="true">{mb_strtoupper(mb_substr($service['name'], 0, 1))}</span>
 
 		<div class="min-w-0 flex-1">
 			<p n:class="'truncate font-medium', $muted ? 'text-stone-500' : 'text-stone-900'">{$service['name']}</p>
@@ -92,11 +88,6 @@
 							<label n:name="amount" class="field-label">Částka (Kč)</label>
 							<input n:name="amount" class="input" inputmode="decimal">
 							<p class="field-error" n:ifcontent>{inputError amount}</p>
-						</div>
-						<div>
-							<label n:name="note" class="field-label">Poznámka</label>
-							<textarea n:name="note" class="input" rows="2"></textarea>
-							<p class="field-error" n:ifcontent>{inputError note}</p>
 						</div>
 						<div class="flex items-center gap-3 pt-1">
 							<button n:name="send" class="btn-primary">Uložit</button>

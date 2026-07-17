@@ -26,7 +26,6 @@ function service(
 	return [
 		'id' => $id,
 		'name' => "Služba {$id}",
-		'icon' => null,
 		'period' => $period,
 		'due_day' => $dueDay,
 		'due_month' => $dueMonth,
@@ -49,7 +48,6 @@ function payment(int $serviceId, string $dueDate, int $amount, ?string $paidDate
 		'paid_date' => $paidDate,
 		'skipped_at' => $skippedAt,
 		'amount' => $amount,
-		'note' => null,
 	];
 }
 

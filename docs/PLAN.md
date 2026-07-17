@@ -46,12 +46,12 @@ opravy dle nálezů → **master** (sign-off) → **commit**.
 ## Datový model (SQLite)
 - **category**: id, name, color (hex), sort_order
 - **service** (šablona): id, name, amount (haléře), period (monthly|yearly), due_day (1–31),
-  due_month (1–12, jen yearly), category_id (FK, null), icon (emoji), note, is_archived (0/1),
+  due_month (1–12, jen yearly), category_id (FK, null), is_archived (0/1),
   created_at, archived_at. Řazení je automatické (is_sliding, due_day, id) — bez vlastního
-  sloupce.
+  sloupce. Pole icon/note zrušena migrací 005 (issue 2026-07).
 - **payment** (za období): id, service_id (FK, CASCADE), period_year, period_month (1–12),
-  due_date (ISO, plán), paid_date (ISO, NULL=nezaplaceno), amount (haléře), note, created_at ·
-  UNIQUE(service_id, period_year, period_month)
+  due_date (ISO, plán), paid_date (ISO, NULL=nezaplaceno), amount (haléře), created_at ·
+  UNIQUE(service_id, period_year, period_month). Pole note zrušeno migrací 005.
 - **_migration**: evidence migrací
 
 Stavy: paid_date!=NULL → zaplaceno; NULL a due_date<dnes → po splatnosti; jinak naplánováno.

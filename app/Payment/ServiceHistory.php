@@ -42,7 +42,6 @@ final class ServiceHistory
 			$items[] = new PaymentHistoryItem(
 				$status,
 				$amount,
-				$payment['note'] !== null ? (string) $payment['note'] : null,
 				(int) $payment['period_year'],
 				(int) $payment['period_month'],
 				$dueDate,

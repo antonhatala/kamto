@@ -174,19 +174,6 @@ final class ServicePresenter extends SecuredPresenter
 		$form->addSelect('category_id', 'Kategorie', $categoryOptions)
 			->setDefaultValue('');
 
-		$form->addText('icon', 'Ikona (emoji)')
-			->addRule(
-				static function (Control $control, mixed $arg = null): bool {
-					$value = trim($control->getValue());
-
-					return $value === '' || preg_match('/^\X$/u', $value) === 1;
-				},
-				'Ikona může být jen jeden znak/emoji.',
-			);
-
-		$form->addTextArea('note', 'Poznámka')
-			->addRule(Form::MaxLength, 'Poznámka může mít nejvýše %d znaků.', 500);
-
 		if ($this->editedService !== null) {
 			$editedIsSliding = (int) $this->editedService['is_sliding'] === 1;
 
@@ -200,8 +187,6 @@ final class ServicePresenter extends SecuredPresenter
 				// NULL (měsíční perioda) musí zůstat null — select se setPrompt() prázdný string nepřijme
 				'due_month' => $this->editedService['due_month'] !== null ? (int) $this->editedService['due_month'] : null,
 				'category_id' => $this->editedService['category_id'] !== null ? (string) $this->editedService['category_id'] : '',
-				'icon' => $this->editedService['icon'] ?? '',
-				'note' => $this->editedService['note'] ?? '',
 				'is_sliding' => $editedIsSliding,
 			]);
 		}
@@ -257,8 +242,6 @@ final class ServicePresenter extends SecuredPresenter
 			// Měsíční perioda due_month nikdy neukládá, i kdyby v requestu přišel (vynuceno na serveru).
 			'due_month' => $isYearly ? (int) $values->due_month : null,
 			'category_id' => $categoryId,
-			'icon' => ($icon = trim($values->icon)) === '' ? null : $icon,
-			'note' => ($note = trim($values->note)) === '' ? null : $note,
 			'is_sliding' => $isSliding ? 1 : 0,
 		];
 

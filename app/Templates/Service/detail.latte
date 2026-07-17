@@ -14,9 +14,8 @@
 
 <div class="flex flex-wrap items-start justify-between gap-3">
 	<div class="flex min-w-0 items-start gap-3">
-		{if $service['icon']}
-			<span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-stone-100 text-xl" aria-hidden="true">{$service['icon']}</span>
-		{/if}
+		{* Iniciála služby — stejný vzor jako seznam služeb / dashboard. *}
+		<span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-stone-100 text-sm font-semibold text-stone-500" aria-hidden="true">{mb_strtoupper(mb_substr($service['name'], 0, 1))}</span>
 		<div class="min-w-0">
 			<h1 class="text-lg font-semibold tracking-tight text-stone-900 sm:text-xl">{$service['name']}</h1>
 			<p class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-stone-500">
@@ -36,9 +35,6 @@
 				</span>
 				<span n:if="$service['is_archived']" class="rounded-full bg-stone-100 px-2 py-0.5 text-xs font-medium text-stone-500">Archivováno</span>
 			</p>
-			{* Poznámka služby (ne poznámky plateb) — tlumeně pod metadaty. Uživatelský text,
-			   escapované (Latte default), žádný noescape. *}
-			<p n:if="$service['note']" class="mt-2 text-sm text-stone-500">{$service['note']}</p>
 		</div>
 	</div>
 	<a n:href="Service:edit, $service['id']" class="btn-ghost shrink-0">Upravit</a>
@@ -105,7 +101,6 @@
 				{$item->status->label()}
 			</span>
 			<span class="shrink-0 text-sm font-medium tabular-nums text-stone-900">{$item->amount|czk}</span>
-			<span n:if="$item->note" class="w-full text-xs text-stone-400">{$item->note}</span>
 		</li>
 	</ul>
 </section>

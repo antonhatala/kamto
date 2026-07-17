@@ -13,8 +13,8 @@ namespace App\Export;
  * Bezpečnost (CSV/formula injection, viz OWASP): buňka, kterou by Excel/Sheets vyhodnotil
  * jako vzorec (začíná `=`/`+`/`-`/`@`) nebo jako řídicí znak (tab/CR), se neutralizuje
  * prefixem apostrofu — platí pro VŠECHNY buňky vč. hlavičky, protože jména služeb/kategorií
- * i poznámky jsou uživatelský vstup. Escapování aplikuje `escapeCell()` na každou buňku
- * samostatně, řádky samotné nikdy nejsou "surový" string zvenčí.
+ * jsou uživatelský vstup. Escapování aplikuje `escapeCell()` na každou buňku samostatně,
+ * řádky samotné nikdy nejsou "surový" string zvenčí.
  */
 final class CsvExporter
 {
@@ -49,7 +49,7 @@ final class CsvExporter
 	{
 		// Excel/Sheets spustí jako vzorec buňku začínající =, +, -, @; tab/CR na začátku je
 		// stejná třída útoku (viz OWASP CSV Injection) — sem patří leda user-controlled
-		// vstup (jméno služby/kategorie, poznámka), nikdy naše vlastní generovaná pole.
+		// vstup (jméno služby/kategorie), nikdy naše vlastní generovaná pole.
 		if ($value !== '' && preg_match('/^[=+\-@\t\r]/', $value) === 1) {
 			$value = "'" . $value;
 		}

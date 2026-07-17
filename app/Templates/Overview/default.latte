@@ -111,7 +111,7 @@
 					<div role="rowheader" class="sticky left-0 z-10 flex min-w-0 items-center gap-1.5 overflow-hidden bg-white pr-2">
 						<span class="h-2 w-2 shrink-0 rounded-full" style="background-color: {$row->category->color|noescape}" aria-hidden="true"></span>
 						<a n:href="Service:detail, $row->service['id']" n:class="'truncate rounded text-sm transition hover:text-accent-700 focus:outline-none focus:ring-2 focus:ring-accent-200', $row->isArchived ? 'text-stone-400' : 'text-stone-900'">
-							{if $row->service['icon']}{$row->service['icon']} {/if}{$row->service['name']}
+							{$row->service['name']}
 						</a>
 						<span class="shrink-0 text-[0.65rem] text-stone-400" title="{$row->periodBadge}">{$row->periodBadge === 'Ročně' ? 'R' : 'M'}</span>
 						<span n:if="$row->isArchived" class="shrink-0 text-[0.6rem] text-stone-400">(archiv)</span>

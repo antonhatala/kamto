@@ -59,10 +59,10 @@ final class PaymentService
 	 * Ruční úprava částky pro dané období — mění jen tento jeden payment řádek, ne šablonu
 	 * (service.amount). Pozdější změna service.amount proto existující řádky nepřepočítá.
 	 */
-	public function setAmount(int $serviceId, int $year, int $month, int $amount, ?string $note): void
+	public function setAmount(int $serviceId, int $year, int $month, int $amount): void
 	{
 		$id = $this->upsert($serviceId, $year, $month);
-		$this->paymentRepository->setAmount($id, $amount, $note);
+		$this->paymentRepository->setAmount($id, $amount);
 	}
 
 	/**

@@ -42,15 +42,11 @@ $yearlyId = $repo->insert([
 	'period' => 'yearly',
 	'due_day' => 1,
 	'due_month' => 6,
-	'icon' => '🌐',
-	'note' => 'Roční poplatek',
 	'is_sliding' => 1,
 ]);
 $yearly = $repo->find($yearlyId);
 Assert::same('yearly', $yearly['period']);
 Assert::same(6, $yearly['due_month']);
-Assert::same('🌐', $yearly['icon']);
-Assert::same('Roční poplatek', $yearly['note']);
 // is_sliding — round-trip explicitně poslané hodnoty 1 (klouzavá služba).
 Assert::same(1, $yearly['is_sliding']);
 
@@ -70,8 +66,6 @@ $repo->update($id, [
 	'due_day' => 20,
 	'due_month' => null,
 	'category_id' => null,
-	'icon' => null,
-	'note' => null,
 	'is_sliding' => 0,
 ]);
 Assert::same('Netflix Premium', $repo->find($id)['name']);
@@ -86,8 +80,6 @@ $repo->update($id, [
 	'due_day' => 20,
 	'due_month' => null,
 	'category_id' => null,
-	'icon' => null,
-	'note' => null,
 	'is_sliding' => 1,
 ]);
 Assert::same(1, $repo->find($id)['is_sliding']);

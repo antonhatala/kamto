@@ -63,8 +63,6 @@ final class ServiceRepository
 	 *     due_day: int,
 	 *     due_month?: int|null,
 	 *     category_id?: int|null,
-	 *     icon?: string|null,
-	 *     note?: string|null,
 	 *     is_sliding?: int,
 	 * } $data
 	 */
@@ -72,8 +70,8 @@ final class ServiceRepository
 	{
 		$this->db->execute(
 			'INSERT INTO service
-				(name, amount, period, due_day, due_month, category_id, icon, note, created_at, is_sliding)
-				VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+				(name, amount, period, due_day, due_month, category_id, created_at, is_sliding)
+				VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
 			[
 				$data['name'],
 				$data['amount'],
@@ -81,8 +79,6 @@ final class ServiceRepository
 				$data['due_day'],
 				$data['due_month'] ?? null,
 				$data['category_id'] ?? null,
-				$data['icon'] ?? null,
-				$data['note'] ?? null,
 				// created_at si repozitář generuje sám — volající ho neposílá (sjednoceno napříč repozitáři).
 				date(DATE_ATOM),
 				$data['is_sliding'] ?? 0,
@@ -103,8 +99,6 @@ final class ServiceRepository
 	 *     due_day: int,
 	 *     due_month: int|null,
 	 *     category_id: int|null,
-	 *     icon: string|null,
-	 *     note: string|null,
 	 *     is_sliding: int,
 	 * } $data
 	 */
@@ -113,7 +107,7 @@ final class ServiceRepository
 		$this->db->execute(
 			'UPDATE service SET
 				name = ?, amount = ?, period = ?, due_day = ?, due_month = ?,
-				category_id = ?, icon = ?, note = ?, is_sliding = ?
+				category_id = ?, is_sliding = ?
 				WHERE id = ?',
 			[
 				$data['name'],
@@ -122,8 +116,6 @@ final class ServiceRepository
 				$data['due_day'],
 				$data['due_month'],
 				$data['category_id'],
-				$data['icon'],
-				$data['note'],
 				$data['is_sliding'],
 				$id,
 			],
