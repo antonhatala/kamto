@@ -50,6 +50,9 @@ tenhle soubor v syncu.
 - Dashboard amount-form (Multiplier): prefill mapy (`servicesById`/`paymentsByServiceId`)
   plní až `renderDefault()`; na POST submitu jsou prázdné → fallback prefill, odeslaná data
   ho stejně přepíšou. Nejde o bug.
+- Dialog „Zaplatit jinou částku": potvrzení dělá `setAmount` **a hned** `markPaid` — uživatel
+  po potvrzení částky čekal zaplaceno a zapomínal klikat „Zaplaceno ✓" zvlášť. Úprava částky
+  bez zaplacení neexistuje (výchozí částku mění edit služby).
 - Povinnost `due_day`/`due_month` se vynucuje až v `serviceFormSucceeded()`, ne pravidly na
   formuláři — progressive disclosure je čisté CSS (`:has()`), klient nemusí mít JS a server
   je zdroj pravdy. Pozn.: Nette `Rules::validate()` přeskakuje pravidla nevyplněného

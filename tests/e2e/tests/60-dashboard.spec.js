@@ -112,7 +112,7 @@ test.describe('Dashboard "Co zaplatit" (Phase 3)', () => {
 		await expect(remainingTotal(page)).toHaveText('199,50 Kč');
 	});
 
-	test('editing the amount via the dialog updates the row and total; an invalid amount is rejected', async ({ page }) => {
+	test('confirming the amount dialog pays the service with the edited amount; an invalid amount is rejected', async ({ page }) => {
 		await addMonthlyService(page, { name: 'Spotify', amount: '199,50', dueDay: 15 });
 
 		await page.goto(FUTURE_PATH);
@@ -126,22 +126,24 @@ test.describe('Dashboard "Co zaplatit" (Phase 3)', () => {
 		expect(Math.abs(center.x - viewport.width / 2)).toBeLessThan(2);
 		expect(Math.abs(center.y - viewport.height / 2)).toBeLessThan(2);
 
-		await dialog.getByLabel('Částka (Kč)').fill('349,50');
-		await dialog.getByRole('button', { name: 'Uložit' }).click();
+		await expect(dialog.getByLabel('Částka (Kč)')).toHaveAttribute('autocomplete', 'off');
 
-		await expect(page.getByRole('status')).toHaveText('Částka byla upravena.');
-		await expect(dashRow(page, 'Spotify')).toContainText('349,50 Kč');
-		await expect(remainingTotal(page)).toHaveText('349,50 Kč');
-
-		await dashRow(page, 'Spotify').getByRole('button', { name: 'Upravit částku u Spotify' }).click();
-		const dialog2 = page.getByRole('dialog');
-		await expect(dialog2).toBeVisible();
-		await dialog2.getByLabel('Částka (Kč)').fill('abc');
-		await dialog2.getByRole('button', { name: 'Uložit' }).click();
+		await dialog.getByLabel('Částka (Kč)').fill('abc');
+		await dialog.getByRole('button', { name: 'Zaplatit' }).click();
 
 		await expect(page.getByRole('dialog')).toBeVisible();
 		await expect(page.getByRole('dialog').getByText('Zadejte platnou částku.')).toBeVisible();
+		await expect(remainingTotal(page)).toHaveText('199,50 Kč');
+		await expect(paidTotal(page)).toHaveText('0 Kč');
+
+		await page.getByRole('dialog').getByLabel('Částka (Kč)').fill('349,50');
+		await page.getByRole('dialog').getByRole('button', { name: 'Zaplatit' }).click();
+
+		await expect(page.getByRole('status')).toHaveText('Platba byla zaplacena s upravenou částkou.');
 		await expect(dashRow(page, 'Spotify')).toContainText('349,50 Kč');
+		await expect(dashRow(page, 'Spotify').getByRole('button', { name: 'Vrátit Spotify mezi nezaplacené' })).toBeVisible();
+		await expect(remainingTotal(page)).toHaveText('0 Kč');
+		await expect(paidTotal(page)).toHaveText('349,50 Kč');
 	});
 
 	test('a yearly service appears only in its due month', async ({ page }) => {

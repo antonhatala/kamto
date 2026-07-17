@@ -154,7 +154,7 @@ final class HomePresenter extends SecuredPresenter
 					'Zadejte platnou částku.',
 				);
 
-			$form->addSubmit('send', 'Uložit částku');
+			$form->addSubmit('send', 'Zaplatit');
 			$form->addProtection('Vypršel časový limit, zkuste to prosím znovu.');
 
 			$form->onSuccess[] = function (Form $form, \stdClass $values) use ($serviceId): void {
@@ -168,7 +168,8 @@ final class HomePresenter extends SecuredPresenter
 				}
 
 				$this->paymentService->setAmount($serviceId, $this->year, $this->month, $amount);
-				$this->flashMessage('Částka byla upravena.');
+				$this->paymentService->markPaid($serviceId, $this->year, $this->month);
+				$this->flashMessage('Platba byla zaplacena s upravenou částkou.');
 				$this->redirect('Home:default', ['year' => $this->year, 'month' => $this->month]);
 			};
 
