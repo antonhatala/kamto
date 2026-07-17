@@ -5,7 +5,8 @@ Netflix, Claude…). **Single-user, jen CZK, světlý minimalistický vzhled (be
 Cíl: rychlý přehled „co tento měsíc zaplatit" + čitelná **historie/průběh** plateb (které měsíce
 jsem co platil, kde jsou pauzy → heatmapa s mezerami).
 
-> Detailní plán a datový model: `docs/PLAN.md`.
+> Detailní plán a datový model: `docs/PLAN.md`. Technické invarianty a pasti: `docs/NOTES.md`
+> (kód je bez komentářů — viz Konvence).
 
 ## Stack
 - **PHP 8.5** · **Nette** (application, di, http, security, forms, robot-loader) + **Latte 3.1** + Tracy.
@@ -56,7 +57,12 @@ tests/      nette/tester
 - **Peníze = integer haléře** (CZK×100); formátovat až při zobrazení.
 - Datum/čas ISO 8601 v DB; časová zóna `Europe/Prague`; locale `cs`.
 - **PHPStan** (co nejvyšší level) + **nette/tester** tam, kde to dává smysl.
-- Komentáře česky; identifikátory anglicky.
+- **Žádné komentáře v kódu** (platí pro PHP, Latte, CSS, JS, SQL, configy i CI) — kód má
+  být čitelný sám o sobě. Důležité invarianty a pasti patří do **`docs/NOTES.md`**, ne do
+  zdrojáků; při změně chování NOTES.md aktualizuj. Jediná výjimka: PHPDoc **typové anotace**
+  pro PHPStan (`@param`/`@return`/`@var`/`@template`…) — bez prozaických popisů. Pravidlo
+  platí i pro všechny budoucí úkoly a agenty: komentáře nezavádět.
+- Identifikátory anglicky; texty v UI a dokumentace česky.
 - **Služby se řadí automaticky** `is_sliding, due_day, id` (neklouzavé dle dne v měsíci 1→31,
   klouzavé na konec); ruční řazení neexistuje.
 
@@ -83,7 +89,8 @@ tests/      nette/tester
   závislosti na síti; důležité i pro pozdější PWA/offline).
 - **Focus stavy:** `focus:ring-2 focus:ring-accent-200/300` + `focus:border-accent-500`.
 - **Komponentní třídy** (`@layer components` v `src/css/app.css`, záměrně malá sada):
-  `.input`, `.field-label`, `.field-error`, `.btn-primary`, `.btn-danger`, `.btn-ghost`,
+  `.input`, `.select` (nativní select: `appearance-none` + vlastní SVG chevron v pozadí),
+  `.field-label`, `.field-error`, `.btn-primary`, `.btn-danger`, `.btn-ghost`,
   `.btn-icon`, `.segment-option` (segmentový radio přepínač), `.checkbox` (nativní checkbox,
   `accent-color` na brand barvu), `.badge-accent` (malý copper štítek, nese text — např.
   „Kdykoliv" u služby bez pevného dne splatnosti, kódově `service.is_sliding`) a
