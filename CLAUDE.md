@@ -85,8 +85,11 @@ tests/      nette/tester
 - **Komponentní třídy** (`@layer components` v `src/css/app.css`, záměrně malá sada):
   `.input`, `.field-label`, `.field-error`, `.btn-primary`, `.btn-danger`, `.btn-ghost`,
   `.btn-icon`, `.segment-option` (segmentový radio přepínač), `.checkbox` (nativní checkbox,
-  `accent-color` na brand barvu) a `.badge-accent` (malý copper štítek, nese text — např.
-  „Kdykoliv" u služby bez pevného dne splatnosti, kódově `service.is_sliding`). Progresivní
+  `accent-color` na brand barvu), `.badge-accent` (malý copper štítek, nese text — např.
+  „Kdykoliv" u služby bez pevného dne splatnosti, kódově `service.is_sliding`) a
+  `.avatar-initial` (iniciála služby tintovaná barvou kategorie přes `--c` + `color-mix`;
+  hex validuje `CategoryDisplay::resolve()` → bezpečný `|noescape`, bez kategorie neutrální
+  stone fallback; velikost dodává volající, stavové utility tint přebijí). Progresivní
   odhalení přes CSS `:has()`, bez JS: `.yearly-only` (pole jen pro roční periodu),
   `.monthly-only` (checkbox „Platím kdykoliv v měsíci" jen pro měsíční periodu) a
   `.due-day-field` (den splatnosti se schová jen v kombinaci měsíční + zaškrtnuté „Platím

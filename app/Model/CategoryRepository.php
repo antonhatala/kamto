@@ -26,6 +26,22 @@ final class CategoryRepository
 		return $this->db->fetch('SELECT * FROM category WHERE id = ?', [$id]);
 	}
 
+	/**
+	 * Kategorie indexované podle id — pro zobrazení u služeb bez N+1 (seznam služeb,
+	 * dashboard). Sdíleno presentery, ať se indexace nekopíruje.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 */
+	public function findAllById(): array
+	{
+		$categoriesById = [];
+		foreach ($this->findAll() as $category) {
+			$categoriesById[(int) $category['id']] = $category;
+		}
+
+		return $categoriesById;
+	}
+
 	/** Počet služeb v kategorii — pro potvrzení smazání (viz CategoryPresenter::actionDelete). */
 	public function countServices(int $categoryId): int
 	{

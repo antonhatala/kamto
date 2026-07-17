@@ -49,7 +49,7 @@ final class ServicePresenter extends SecuredPresenter
 		$this->template->services = $services;
 		$this->template->archivedServices = $archivedServices;
 		$this->template->archivedCount = count($archivedServices);
-		$this->template->categoriesById = $this->indexCategoriesById();
+		$this->template->categoriesById = $this->categoryRepository->findAllById();
 		// Onboarding prázdný stav — žádná služba vůbec (aktivní ani archivovaná).
 		$this->template->isEmpty = $services === [] && $archivedServices === [];
 	}
@@ -255,16 +255,5 @@ final class ServicePresenter extends SecuredPresenter
 		}
 
 		$this->redirect('Service:default');
-	}
-
-	/** @return array<int, array<string, mixed>> Kategorie indexované podle id — pro zobrazení u služby bez N+1. */
-	private function indexCategoriesById(): array
-	{
-		$categoriesById = [];
-		foreach ($this->categoryRepository->findAll() as $category) {
-			$categoriesById[(int) $category['id']] = $category;
-		}
-
-		return $categoriesById;
 	}
 }

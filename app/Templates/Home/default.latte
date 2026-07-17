@@ -19,8 +19,11 @@
 		$overdue ? 'border-red-200 bg-red-50/60' : ($slidingActive ? 'border-accent-200 bg-accent-50/60' : 'border-stone-200'),
 		$muted ? 'bg-stone-50' : ($overdue || $slidingActive ? '' : 'bg-white')
 	">
-		{* Iniciála služby (stejný vzor jako seznam služeb). *}
-		<span n:class="'flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-sm font-semibold text-stone-500', $overdue ? 'bg-red-100' : 'bg-stone-100', $muted ? 'opacity-60' : ''" aria-hidden="true">{mb_strtoupper(mb_substr($service['name'], 0, 1))}</span>
+		{* Iniciála služby s tintem barvy kategorie (.avatar-initial) — resolve() validuje hex
+		   pro |noescape a bez kategorie dává neutrální fallback. U řádku po splatnosti stav
+		   přebíjí dekoraci (červené utility tint přepíšou). *}
+		{var $avatarColor = App\Payment\CategoryDisplay::resolve($service['category_id'] !== null ? ($categoriesById[$service['category_id']] ?? null) : null)->color}
+		<span n:class="'avatar-initial h-10 w-10 text-sm', $overdue ? 'bg-red-100 text-red-700' : '', $muted ? 'opacity-60' : ''" style="--c: {$avatarColor|noescape}" aria-hidden="true">{mb_strtoupper(mb_substr($service['name'], 0, 1))}</span>
 
 		<div class="min-w-0 flex-1">
 			<p n:class="'truncate font-medium', $muted ? 'text-stone-500' : 'text-stone-900'">{$service['name']}</p>

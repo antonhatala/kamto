@@ -148,6 +148,21 @@
 	}
 
 	/*
+	 * Iniciála služby — avatar tintovaný barvou kategorie: --c dosazuje šablona přes style
+	 * atribut (hex validovaný v CategoryDisplay::resolve(), proto bezpečný |noescape).
+	 * Bez --c padá na stone-400 → vizuálně neutrální šedý avatar (služba bez kategorie,
+	 * archiv). Poměry mixu ověřeny: text ≥4.5:1 vůči podkladu pro celý whitelist
+	 * CategoryPresenter::Palette. Velikost (h-10, w-10, text-sm…) dodává volající utilitami;
+	 * stavové utility (bg-red-100, opacity-60) tint přebijí — stav > dekorace.
+	 */
+	.avatar-initial {
+		@apply flex shrink-0 items-center justify-center rounded-xl font-semibold;
+		--c: var(--color-stone-400);
+		background-color: color-mix(in srgb, var(--c) 16%, white);
+		color: color-mix(in srgb, var(--c) 62%, var(--color-stone-900));
+	}
+
+	/*
 	 * Heatmapa (ruční CSS grid, Fáze 4) — 13 sloupců: název (sticky) + 12 měsíců. Řádky mají
 	 * `display:contents` (viz `.contents` v šabloně), takže buňky padají přímo do této mřížky
 	 * a přitom si drží sémantiku role="row". Měsíční sloupce jsou minmax(…, 1fr): na širokém

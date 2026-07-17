@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Presenters;
 
 use App\Forms\FormFactory;
+use App\Model\CategoryRepository;
 use App\Model\PaymentRepository;
 use App\Model\ServiceRepository;
 use App\Payment\MonthlyOverview;
@@ -43,6 +44,7 @@ final class HomePresenter extends SecuredPresenter
 
 	public function __construct(
 		private readonly ServiceRepository $serviceRepository,
+		private readonly CategoryRepository $categoryRepository,
 		private readonly PaymentRepository $paymentRepository,
 		private readonly PaymentService $paymentService,
 		private readonly FormFactory $formFactory,
@@ -92,6 +94,8 @@ final class HomePresenter extends SecuredPresenter
 		$this->template->year = $this->year;
 		$this->template->month = $this->month;
 		$this->template->monthName = Months::Names[$this->month];
+		// Barvy kategorií pro tint iniciál služeb (viz .avatar-initial) — bez N+1.
+		$this->template->categoriesById = $this->categoryRepository->findAllById();
 		$this->template->sections = $overview->sections;
 		$this->template->remainingTotal = $overview->remainingTotal;
 		$this->template->paidTotal = $overview->paidTotal;
