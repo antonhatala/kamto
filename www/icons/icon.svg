@@ -1,44 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Kamto app icon (purpose: any) — „K" poskládané z dlaždiček heatmapy (odkaz na historii
-  plateb po měsících, viz .hm-box). Copper gradient (accent-500 → mezi 600/700) + jemný
-  světelný nádech vlevo nahoře; dlaždice páteře a lokte bílé, ramena slábnou do krémových
-  tónů (rodina accent-50/100) — „blednoucí historie". Záměrně žádný <text>: rasterizace
-  nesmí záviset na fontech kontejneru, všechno jsou <rect>.
-  Předloha pro PNG rasterizaci (devops, jednorázově): icon-192.png, icon-512.png.
-  apple-touch-icon.png (180) se rasterizuje z icon-maskable.svg (full-bleed — iOS neumí
-  průhledné rohy, dává za ně černou).
+  Kamto app icon (purpose: any) — logotyp „kamto" (accent-700 na krému accent-50) s řádkou
+  pěti teček-měsíců pod textem: čtyři barvy kategorií (terakotová, petrolejová, hořčicová,
+  modrá — whitelist CategoryPresenter::Palette) + poslední čárkovaná = pauza (mezera
+  v heatmapě). Návrh č. 13 z galerie, vybral uživatel (issue 2026-07).
+  POZOR na rasterizaci: text je závislý na fontu — PNG se generují v Playwright kontejneru
+  s doinstalovaným fontem Inter (apt fonts-inter), fallback Liberation Sans. V aplikaci
+  (hlavička, login) je logotyp HTML/CSS v systémovém fontu — drobný rozdíl je záměr,
+  app je bez webfontů.
+  Předloha pro icon-192.png, icon-512.png; apple-touch-icon.png (180) se rasterizuje
+  z icon-maskable.svg (full-bleed — iOS neumí průhledné rohy).
 -->
 <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="Kamto">
-	<defs>
-		<linearGradient id="bg" x1="0" y1="0" x2="0.3" y2="1">
-			<stop offset="0" stop-color="#c1622e"/>
-			<stop offset="1" stop-color="#8f431a"/>
-		</linearGradient>
-		<radialGradient id="glow" cx="0.28" cy="0.12" r="0.9">
-			<stop offset="0" stop-color="#ffffff" stop-opacity="0.14"/>
-			<stop offset="0.55" stop-color="#ffffff" stop-opacity="0"/>
-		</radialGradient>
-		<clipPath id="squircle"><rect width="512" height="512" rx="112" ry="112"/></clipPath>
-	</defs>
-
-	<rect width="512" height="512" rx="112" ry="112" fill="url(#bg)"/>
-	<rect width="512" height="512" clip-path="url(#squircle)" fill="url(#glow)"/>
-
-	<!-- Mřížka 4×5, dlaždice 64, mezera 14: sloupce x 107/185/263/341, řádky y 68/146/224/302/380. -->
+	<rect width="512" height="512" rx="112" ry="112" fill="#fbf0e6"/>
+	<text x="256" y="228" font-family="Inter, 'SF Pro Text', -apple-system, 'Liberation Sans', system-ui, sans-serif"
+		font-size="126" font-weight="700" letter-spacing="-3" fill="#7f3d18"
+		text-anchor="middle" dominant-baseline="central">kamto</text>
 	<g>
-		<!-- Páteř K (levý sloupec) — plná bílá. -->
-		<rect x="107" y="68" width="64" height="64" rx="13" fill="#ffffff"/>
-		<rect x="107" y="146" width="64" height="64" rx="13" fill="#ffffff"/>
-		<rect x="107" y="224" width="64" height="64" rx="13" fill="#ffffff"/>
-		<rect x="107" y="302" width="64" height="64" rx="13" fill="#ffffff"/>
-		<rect x="107" y="380" width="64" height="64" rx="13" fill="#ffffff"/>
-		<!-- Loket (střed K) — bílý, drží literu pohromadě. -->
-		<rect x="185" y="224" width="64" height="64" rx="13" fill="#ffffff"/>
-		<!-- Ramena — slábnou směrem ke špičkám (heatmapa). -->
-		<rect x="263" y="146" width="64" height="64" rx="13" fill="#f7e4cd"/>
-		<rect x="263" y="302" width="64" height="64" rx="13" fill="#f7e4cd"/>
-		<rect x="341" y="68" width="64" height="64" rx="13" fill="#efd0ac"/>
-		<rect x="341" y="380" width="64" height="64" rx="13" fill="#efd0ac"/>
+		<circle cx="168" cy="344" r="15" fill="#c1622e"/>
+		<circle cx="212" cy="344" r="15" fill="#188f77"/>
+		<circle cx="256" cy="344" r="15" fill="#c9972e"/>
+		<circle cx="300" cy="344" r="15" fill="#2168a3"/>
+		<circle cx="344" cy="344" r="15" fill="none" stroke="#dca277" stroke-width="4" stroke-dasharray="7 7"/>
 	</g>
 </svg>

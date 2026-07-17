@@ -7,8 +7,10 @@
 	<meta name="theme-color" content="#ffffff">
 	<link rel="stylesheet" href="/css/app.css">
 	<link rel="manifest" href="/manifest.json">
-	{* SVG favicon (záložka prohlížeče) — stejná předloha jako PWA ikona, škáluje bez rastrů. *}
-	<link rel="icon" href="/icons/icon.svg" type="image/svg+xml">
+	{* Favicon = inverzní varianta logotypu (copper podklad) — krémová ikona na světlém tab
+	   baru splývá a Safari kolem světlých favicon kreslí tmavý obrys. PNG, ne SVG: logotyp
+	   je <text> a jeho podoba by závisela na fontech prohlížeče (viz icons/icon.svg). *}
+	<link rel="icon" href="/icons/favicon.png" type="image/png">
 	<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 	{* Veškerý klientský JS je v jednom externím souboru (žádný inline <script> → CSP script-src 'self'). *}
 	<script src="/js/app.js" defer></script>
@@ -24,9 +26,18 @@
 		   pod ně (nav = w-full, order-3). Od sm: jeden řádek (logo · nav · … · Odhlásit se) přes
 		   order utility. Nikdy nepřeteče viewport → tělo stránky nescrolluje vodorovně. *}
 		<div class="mx-auto flex max-w-3xl flex-wrap items-center gap-x-2 gap-y-2 px-4 py-3 sm:flex-nowrap sm:px-6">
-			<a n:href="Home:default" class="order-1 flex items-center gap-2.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-200">
-				<span class="flex h-8 w-8 items-center justify-center rounded-xl bg-accent-600 text-sm font-semibold text-white" aria-hidden="true">K</span>
-				<span class="text-base font-semibold tracking-tight text-stone-900">Kamto</span>
+			{* Logotyp „kamto" + tečky-měsíce (4 kategorie + čárkovaná pauza) — stejná značka jako
+			   ikona aplikace (icons/icon.svg, návrh 13). Inline hex: plné tečky z whitelistu
+			   CategoryPresenter::Palette, čárkovaná pauza accent-300. *}
+			<a n:href="Home:default" class="order-1 flex flex-col items-start gap-1 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-200">
+				<span class="text-base font-bold leading-none tracking-tight text-accent-700">kamto</span>
+				<span class="flex items-center gap-1" aria-hidden="true">
+					<span class="h-1.5 w-1.5 rounded-full" style="background-color:#c1622e"></span>
+					<span class="h-1.5 w-1.5 rounded-full" style="background-color:#188f77"></span>
+					<span class="h-1.5 w-1.5 rounded-full" style="background-color:#c9972e"></span>
+					<span class="h-1.5 w-1.5 rounded-full" style="background-color:#2168a3"></span>
+					<span class="h-1.5 w-1.5 rounded-full border border-dashed" style="border-color:#dca277"></span>
+				</span>
 			</a>
 			<nav aria-label="Hlavní navigace" class="order-3 w-full overflow-x-auto sm:order-2 sm:ml-2 sm:w-auto sm:overflow-visible">
 				<div class="flex w-max items-center gap-1 sm:w-auto">

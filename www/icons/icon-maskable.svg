@@ -1,37 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Kamto maskable icon (purpose: maskable) — stejné heatmapové „K" jako icon.svg, ale
-  full-bleed pozadí (edge-to-edge, aby OS maska vždy ukázala barvu) a litera zmenšená do
-  ~80% safe-zone (nejvzdálenější roh dlaždice ~188 px od středu < poloměr 205 px).
-  Předloha pro icon-192-maskable.png, icon-512-maskable.png a apple-touch-icon.png (180 —
-  iOS si rohy zaobluje sám a průhledné rohy neumí). Rasterizuje devops jednorázově.
+  Kamto maskable icon (purpose: maskable) — stejný logotyp „kamto" + tečky-měsíce jako
+  icon.svg (návrh č. 13), ale full-bleed krémové pozadí (edge-to-edge, aby OS maska vždy
+  ukázala barvu) a obsah zmenšený do ~80% safe-zone (nejvzdálenější bod ~165 px od středu
+  < poloměr 205 px). Předloha pro icon-192-maskable.png, icon-512-maskable.png
+  a apple-touch-icon.png (180 — iOS si rohy zaobluje sám). Rasterizace vyžaduje font Inter
+  (viz icon.svg), fallback Liberation Sans.
 -->
 <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="Kamto">
-	<defs>
-		<linearGradient id="bg" x1="0" y1="0" x2="0.3" y2="1">
-			<stop offset="0" stop-color="#c1622e"/>
-			<stop offset="1" stop-color="#8f431a"/>
-		</linearGradient>
-		<radialGradient id="glow" cx="0.28" cy="0.12" r="0.9">
-			<stop offset="0" stop-color="#ffffff" stop-opacity="0.14"/>
-			<stop offset="0.55" stop-color="#ffffff" stop-opacity="0"/>
-		</radialGradient>
-	</defs>
-
-	<rect width="512" height="512" fill="url(#bg)"/>
-	<rect width="512" height="512" fill="url(#glow)"/>
-
-	<!-- Mřížka 4×5, dlaždice 50, mezera 11: sloupce x 139/200/261/322, řádky y 109/170/231/292/353. -->
+	<rect width="512" height="512" fill="#fbf0e6"/>
+	<text x="256" y="233" font-family="Inter, 'SF Pro Text', -apple-system, 'Liberation Sans', system-ui, sans-serif"
+		font-size="104" font-weight="700" letter-spacing="-2.5" fill="#7f3d18"
+		text-anchor="middle" dominant-baseline="central">kamto</text>
 	<g>
-		<rect x="139" y="109" width="50" height="50" rx="10" fill="#ffffff"/>
-		<rect x="139" y="170" width="50" height="50" rx="10" fill="#ffffff"/>
-		<rect x="139" y="231" width="50" height="50" rx="10" fill="#ffffff"/>
-		<rect x="139" y="292" width="50" height="50" rx="10" fill="#ffffff"/>
-		<rect x="139" y="353" width="50" height="50" rx="10" fill="#ffffff"/>
-		<rect x="200" y="231" width="50" height="50" rx="10" fill="#ffffff"/>
-		<rect x="261" y="170" width="50" height="50" rx="10" fill="#f7e4cd"/>
-		<rect x="261" y="292" width="50" height="50" rx="10" fill="#f7e4cd"/>
-		<rect x="322" y="109" width="50" height="50" rx="10" fill="#efd0ac"/>
-		<rect x="322" y="353" width="50" height="50" rx="10" fill="#efd0ac"/>
+		<circle cx="184" cy="328" r="12" fill="#c1622e"/>
+		<circle cx="220" cy="328" r="12" fill="#188f77"/>
+		<circle cx="256" cy="328" r="12" fill="#c9972e"/>
+		<circle cx="292" cy="328" r="12" fill="#2168a3"/>
+		<circle cx="328" cy="328" r="12" fill="none" stroke="#dca277" stroke-width="3.5" stroke-dasharray="6 6"/>
 	</g>
 </svg>

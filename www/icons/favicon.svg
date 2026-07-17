@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Kamto favicon (záložka prohlížeče) — inverzní varianta logotypu: copper podklad + krémový
+  „kamto" a tečky. Krémová ikona (icon.svg) na světlém tab baru skoro splývá a Safari kolem
+  světlých favicon kreslí tmavý obrys — inverz má kontrast sám o sobě. Tečky jednobarevné
+  (v 16–32 px jsou stejně subpixelové, barvy kategorií by se slily do šumu).
+  Rasterizace: favicon.png (64 px), vyžaduje font Inter (viz icon.svg).
+-->
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="Kamto">
+	<rect width="512" height="512" rx="112" ry="112" fill="#a6501f"/>
+	<text x="256" y="228" font-family="Inter, 'SF Pro Text', -apple-system, 'Liberation Sans', system-ui, sans-serif"
+		font-size="126" font-weight="700" letter-spacing="-3" fill="#fbf0e6"
+		text-anchor="middle" dominant-baseline="central">kamto</text>
+	<g fill="#f6dfc9">
+		<circle cx="168" cy="344" r="15"/>
+		<circle cx="212" cy="344" r="15"/>
+		<circle cx="256" cy="344" r="15"/>
+		<circle cx="300" cy="344" r="15"/>
+		<circle cx="344" cy="344" r="15" fill="none" stroke="#eac29c" stroke-width="4" stroke-dasharray="7 7"/>
+	</g>
+</svg>
