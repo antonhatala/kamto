@@ -100,6 +100,8 @@ tests/      nette/tester
   i textový/ikonový, ne pouze barevný (přístupnost). „Po splatnosti" = `red-*` tokeny střídmě
   (tinted řádek `bg-red-50/60` + `border-red-200`), nulový zbytek k zaplacení = `emerald-600`.
 - **Dialog úpravy částky:** nativní `<dialog>` + `showModal()` (Esc a focus-trap řeší prohlížeč).
+  POZOR: Tailwind Preflight nuluje margin všech prvků → `src/css/app.css` vrací `dialog { margin: auto }`
+  (jinak se modál lepí do levého horního rohu); centrování hlídá e2e assert v `60-dashboard.spec.js`.
   Minimální vanilla JS (delegovaný listener na `data-dialog-open`/`data-dialog-close`, žádná
   knihovna); po chybě validace se dialog znovu otevře přes `data-reopen`. Bez JS zůstává
   formulář odeslatelný (dialog je součást stránky).

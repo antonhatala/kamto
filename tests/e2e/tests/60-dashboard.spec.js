@@ -156,6 +156,13 @@ test.describe('Dashboard "Co zaplatit" (Phase 3)', () => {
 		const dialog = page.getByRole('dialog');
 		await expect(dialog).toBeVisible();
 
+		// Regression: Tailwind Preflight zeroes margins, which would pin the dialog to the
+		// top-left corner — src/css/app.css restores `dialog { margin: auto }` (UA centering).
+		const [box, viewport] = [await dialog.boundingBox(), page.viewportSize()];
+		const center = { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+		expect(Math.abs(center.x - viewport.width / 2)).toBeLessThan(2);
+		expect(Math.abs(center.y - viewport.height / 2)).toBeLessThan(2);
+
 		await dialog.getByLabel('Částka (Kč)').fill('349,50');
 		await dialog.getByRole('button', { name: 'Uložit' }).click();
 

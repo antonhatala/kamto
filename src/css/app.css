@@ -34,6 +34,17 @@
 }
 
 /*
+ * Tailwind Preflight nuluje margin na všech prvcích, čímž modální <dialog> ztrácí UA
+ * centrování (margin: auto v UA stylesheetu) a lepí se do levého horního rohu viewportu.
+ * Vracíme výchozí chování prohlížeče — dialogy používáme jen přes showModal().
+ */
+@layer base {
+	dialog {
+		margin: auto;
+	}
+}
+
+/*
  * Small shared component classes (Phase 2) — form controls and buttons repeat across
  * Sign/Service/Category templates, so the recurring utility soups live here. Deliberately
  * a tiny set (inputs + buttons + one segmented control), not a component library.
